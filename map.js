@@ -1,10 +1,10 @@
 //Leaflet Documentation https://docs.eegeo.com/eegeo.js/v0.1.730/docs/leaflet/
 //Graph Documentation https://developers.arcgis.com/esri-leaflet/samples/dynamic-chart/
-import {getAllSites, latestOfSet, getSitesData} from "./data.js";
-import { createColorLegend, updateTime, updateAOD, getDate, getEndDate } from "./components.js";
-import { MarkerManager } from "./marker.js"
-import { initMap } from "./init.js";
-import { FieldInitializer } from "./fields.js"
+import {getAllSites, latestOfSet, getSitesData} from './data.js';
+import { createColorLegend, updateTime, updateAOD, getDate, getEndDate } from './components.js';
+import { MarkerManager } from './marker.js'
+import { initMap } from './init.js';
+import { FieldInitializer } from './fields.js'
 
 
 // create map obj

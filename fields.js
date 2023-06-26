@@ -1,7 +1,7 @@
 
-import { latestOfSet, getSitesData} from "./data.js";
-import { updateTime, updateAOD, getDate } from "./components.js";
-import { initDropdown } from "./init.js";
+import { latestOfSet, getSitesData} from './data.js';
+import { updateTime, updateAOD, getDate } from './components.js';
+import { initDropdown } from './init.js';
 export class FieldInitializer {
     constructor(siteData, allSiteData, opticalDepth, map, markerLayer) {
         this.siteData = siteData;
@@ -23,8 +23,8 @@ export class FieldInitializer {
 
     init() {
         this.aodFieldData = Object.keys(this.siteData[0])
-            .filter(element => (element.startsWith("AOD_")))
-            .map(element => ({ value: element, label: element.split("_")[1] }));
+            .filter(element => (element.startsWith('AOD_')))
+            .map(element => ({ value: element, label: element.split('_')[1] }));
 
         this.aodFieldData.sort((a, b) => {
             const aValue = parseInt(a.label.slice(0, -2));
@@ -32,36 +32,36 @@ export class FieldInitializer {
             return bValue - aValue;
         });
 
-        const sitenames = this.allSiteData.map(obj => obj["Site_Name"]);
+        const sitenames = this.allSiteData.map(obj => obj['Site_Name']);
         this.siteFieldData = sitenames.map(element => ({ value: element, label: element}))
             .sort((a, b) => a.value.localeCompare(b.value));
 
-        const placeholder = "Select";
-        const aodDisc = "Select an optical depth (Default: 500nm)";
-        const dropdownAOD = initDropdown("optical-depth-dropdown", this.aodFieldData, aodDisc, placeholder);
+        const placeholder = 'Select';
+        const aodDisc = 'Select an optical depth (Default: 500nm)';
+        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder);
 
-        const siteDisc = "Select a site";
-        const dropdownSite = initDropdown("site-drop-down", this.siteFieldData, siteDisc, placeholder);
+        const siteDisc = 'Select a site';
+        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder);
 
-        const datatypeOpt = [{value: 10, label: "realtime"}, {value: 20, label: "daily average"}];
-        const dataTypeDisc = "Select mode (Default: realtime)";
-        const dropdownData = initDropdown("data-type-dropdown", datatypeOpt, dataTypeDisc, placeholder);
+        const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
+        const dataTypeDisc = 'Select mode (Default: realtime)';
+        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder);
 
-        const calender = `<form><label for="date-input">Display data from </label>
-                          <input type="text" id="date-input" name="date" data-toggle="flatpickr">
-                          <button type="button" id="submitButton">Submit</button></form>`;
+        const calender = `<form><label for='date-input'>Display data from </label>
+                          <input type='text' id='date-input' name='date' data-toggle='flatpickr'>
+                          <button type='button' id='submitButton'>Submit</button></form>`;
 
-        const inactiveOff = `<form><label for="hide-inacive"> Inactive markers:</label>
-                          <button type="button" id="hide-inactive">Hide</button>
-                          <button type="button" id="show-inactive">Show</button></form>`;
+        const inactiveOff = `<form><label for='hide-inacive'> Inactive markers:</label>
+                          <button type='button' id='hide-inactive'>Hide</button>
+                          <button type='button' id='show-inactive'>Show</button></form>`;
 
 
-        const fieldsContainer = document.getElementById("fields");
+        const fieldsContainer = document.getElementById('fields');
         fieldsContainer.innerHTML = dropdownAOD + dropdownSite + dropdownData + calender + inactiveOff;
 
         // aod field
-        const aodDropdownElm = document.getElementById("optical-depth-dropdown");
-        aodDropdownElm.addEventListener("change", event => {
+        const aodDropdownElm = document.getElementById('optical-depth-dropdown');
+        aodDropdownElm.addEventListener('change', event => {
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
             updateTime(this.date, this.time, this.previouslySetTime);
@@ -70,8 +70,8 @@ export class FieldInitializer {
         });
 
         // realtime and daily field
-        const dataDropdownElm = document.getElementById("data-type-dropdown");
-        dataDropdownElm.addEventListener("change", async event =>  {
+        const dataDropdownElm = document.getElementById('data-type-dropdown');
+        dataDropdownElm.addEventListener('change', async event =>  {
             this.updateAvg(event.target.value);
             this.updateApiArgs();
             this.siteData = await getSitesData(this.api_args, this.avg, this.time);
@@ -81,18 +81,18 @@ export class FieldInitializer {
         });
 
         // site list field
-        const siteropdownElm = document.getElementById("site-drop-down");
-        siteropdownElm.addEventListener("change", event => {
+        const siteropdownElm = document.getElementById('site-drop-down');
+        siteropdownElm.addEventListener('change', event => {
             const selectedValue = event.target.value;
-            const result = this.allSiteData.find(obj => obj["Site_Name"] === selectedValue);
-            this.map.setView([result["Latitude(decimal_degrees)"],result["Longitude(decimal_degrees)"]],15);
+            const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
+            this.map.setView([result['Latitude(decimal_degrees)'],result['Longitude(decimal_degrees)']],15);
         });
 
         const now = new Date();
-        flatpickr("#date-input", {
+        flatpickr('#date-input', {
             utc: true,
             enableTime: true,
-            dateFormat: "Z",
+            dateFormat: 'Z',
             altInput:true,
             altFormat: 'Y-m-d h:i K',
             minDate: new Date(1993, 0, 1),
@@ -100,13 +100,13 @@ export class FieldInitializer {
             defaultDate: now,
         });
 
-        document.getElementById("submitButton").addEventListener("click", async (event) => {
+        document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
-            let dateValue = document.getElementById("date-input").value;
-            const newDate = dateValue.split("T")[0].split("-")
+            let dateValue = document.getElementById('date-input').value;
+            const newDate = dateValue.split('T')[0].split('-')
             const date = newDate
             this.date = [date[0],date[1],date[2]]
-            let [hour, min] = dateValue.split("T")[1].split(".")[0].split(":")
+            let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':')
             this.time = [hour, min]
             this.updateApiArgs()
             this.previouslySetTime = true
@@ -116,16 +116,16 @@ export class FieldInitializer {
             this.recentlySetInactive = true
         });
 
-        const toggleInactiveOff = document.getElementById("hide-inactive");
-        toggleInactiveOff.addEventListener("click", event => {
+        const toggleInactiveOff = document.getElementById('hide-inactive');
+        toggleInactiveOff.addEventListener('click', event => {
             if (this.recentlySetInactive) {
                 this.markerLayer.clearInactiveMarkers();
                 this.recentlySetInactive = false;
             }
         });
 
-        const toggleInactiveOn = document.getElementById("show-inactive");
-        toggleInactiveOn.addEventListener("click", event => {
+        const toggleInactiveOn = document.getElementById('show-inactive');
+        toggleInactiveOn.addEventListener('click', event => {
             if(!this.recentlySetInactive){
                 this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
                 this.recentlySetInactive = true;

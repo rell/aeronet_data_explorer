@@ -1,7 +1,7 @@
 export function initMap()
 {
-    const copy = "&copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
-    const basemap = "http://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const basemap = 'http://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const layer = L.tileLayer(basemap, { attribution:copy, noWrap: false, tileSize: 256 });
 
     // Define the bounds for the map
@@ -19,16 +19,16 @@ export function initMap()
     // Create the Leaflet map
 
     // Return the map object
-    return L.map("map", options);
+    return L.map('map', options);
 }
 
 export function initDropdown(id, options, fieldDescription, placeholder)// create dropdown fields
 {
     let dropdownHTML = `<label for=${id}>${fieldDescription}:</label>`
-    dropdownHTML += `<select id="${id}">`;
-    dropdownHTML += `<option value="">${placeholder}</option>`;
+    dropdownHTML += `<select id='${id}'>`;
+    dropdownHTML += `<option value=''>${placeholder}</option>`;
     for (const option of options) {
-        dropdownHTML += `<option value="${option.value}">${option.label}</option>`;
+        dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
     }
     dropdownHTML += `</select>`;
     return dropdownHTML;

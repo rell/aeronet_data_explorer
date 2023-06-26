@@ -1,4 +1,4 @@
-import {getDate} from "./components.js";
+import {getDate} from './components.js';
 
 // Latest data flow
 const date = getDate().toISOString().split('T')[0].split('-');
@@ -75,7 +75,7 @@ export async function getSitesData(args, dataType, time)
 
 // export async function processSiteList(data) {
 //     const promises = data.map( async (obj) => {
-//         const url = createUrl(obj["Site_Name"]);
+//         const url = createUrl(obj['Site_Name']);
 //         const result = await fetch(url);
 //         const json = await result.json
 //         return json;
@@ -128,9 +128,9 @@ export function buildChartData(data, activeDepth, startDate, endDate)
     if (startDate.join() === endDate.join())
     {
         const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes("-999"))){ // -999 represents inactive data
+            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
                 return {
-                    x: obj["Date(dd:mm:yyyy)"], y: obj[activeDepth]
+                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
                 };
             }
         });
@@ -139,9 +139,9 @@ export function buildChartData(data, activeDepth, startDate, endDate)
     else
     {
         const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes("-999"))){ // -999 represents inactive data
+            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
                 return {
-                    x: obj["Date(dd:mm:yyyy)"], y: obj[activeDepth]
+                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
                 };
             }
         });
@@ -202,7 +202,7 @@ export async function getFullData(url)
 
 export function getAvg (objs, site, opticalDepth)
 {
-    const activeSiteKey = "AERONET_Site"
+    const activeSiteKey = 'AERONET_Site'
     const invalidReading = '-999.'
     let totalAvg = 0;
     let aodAvg = 0;
@@ -217,7 +217,7 @@ export function getAvg (objs, site, opticalDepth)
 export function withinTime (timeTolerance, dataset, time)
 {
     // keys of data
-    const siteTime = "Time(hh:mm:ss)";
+    const siteTime = 'Time(hh:mm:ss)';
 
     let currentHr = null;
     let currentMn = null;
@@ -242,7 +242,7 @@ export function withinTime (timeTolerance, dataset, time)
 
 export function latestOfSet(objs)
 {
-    const activeSiteKey = "AERONET_Site"
+    const activeSiteKey = 'AERONET_Site'
     return Object.values(
         // reduces each item using site name to get latest obj for each site name
         objs.reduce((siteObjs, site) => {
@@ -256,6 +256,6 @@ export async function getStateCountry(latitude, longitude)
 {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {method:'GET', mode:'no-cors'})
         .then(response => response.json())
-        .then(data => { return [data["address"]["state"], data["address"]["country"]] })
+        .then(data => { return [data['address']['state'], data['address']['country']] })
         .catch(error => console.log(error));
 }

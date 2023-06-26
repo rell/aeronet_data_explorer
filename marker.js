@@ -1,6 +1,6 @@
-import { getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet } from "./data.js";
-import { setColor, getEndDate} from "./components.js";
-import { drawGraph } from "./chart.js";
+import { getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet } from './data.js';
+import { setColor, getEndDate} from './components.js';
+import { drawGraph } from './chart.js';
 // import { } // set all keys to data in a config file
 
 
@@ -22,14 +22,14 @@ export class MarkerManager {
   addMarker(data, active_depth) {
 
     // keys of active sites
-    const site_name = "AERONET_Site";
+    const site_name = 'AERONET_Site';
     const site_lat = 'Site_Latitude(Degrees)';
     const site_long = 'Site_Longitude(Degrees)';
     const site_date = 'Date(dd:mm:yyyy)';
     const site_time = 'Time(hh:mm:ss)';
 
     data.forEach( async element => {
-      if (!element[active_depth].toString().includes("-999"))
+      if (!element[active_depth].toString().includes('-999'))
       {
         // active sites will be used for creating inactive sites
         this.active.push(element[site_name].toLowerCase());
@@ -73,14 +73,14 @@ export class MarkerManager {
         const activeReading = parseFloat(element[active_depth]).toPrecision(4)
 
 
-        marker.on("click", async () =>
+        marker.on('click', async () =>
         {
           const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
           const timedSiteData = await getFullData(avgUrl)
           const chartData = buildChartData(timedSiteData, active_depth, this.startDate, this.endDate);
           const chartControl = this.createMarkerChart(chartData)
           chartControl.addTo(this.map);
-          const lastDate = elementDate.split(":")
+          const lastDate = elementDate.split(':')
 
           this.updateDateString(lastDate)
           // const elementStateCountry = await getStateCountry(element[site_lat],element[site_long])
@@ -90,39 +90,39 @@ export class MarkerManager {
           // Bind to tool tip click like purple map
           // fetch full data ( past hr avg  using data given in full data set)
           // refer to https://stackoverflow.com/questions/42604005/hover-of-marker-in-leaflet
-          extendedPopup.setContent(`<p><span style="font-weight:bold">Site is online</span> </p>
-          <p>Most recent reading: <span style="font-weight:bold">${activeReading}<span> </p>
+          extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is online</span> </p>
+          <p>Most recent reading: <span style='font-weight:bold'>${activeReading}<span> </p>
           <div id='testtype'><p> As of ${this.dateString} ${elementTime} UTC</p>
-          <p> Site: <a href="aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html">${site}</a> (${element[site_lat]},${element[site_long]})</p>
-          <p> <a href="https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${element[site_name]}">View Raw</a></p>
+          <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
+          <p> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${element[site_name]}'>View Raw</a></p>
           </div>`);
 
           extendedPopup.openOn(this.map);
 
-          marker.on("popupclose", (event) => {
+          marker.on('popupclose', (event) => {
             this.chartClear(chartControl)
           })
         });
 
 
-        marker.on("mouseover", async () =>
+        marker.on('mouseover', async () =>
         {
           // If wanting to output state, country of desired coordinates
           // const elementStateCountry = await getStateCountry(element[site_lat],element[site_long])
           // console.log(elementStateCountry)
           // const state = elementStateCountry[0]
           // const country = elementStateCountry[1]
-          const lastDate = elementDate.split(":")
+          const lastDate = elementDate.split(':')
           this.updateDateString(lastDate)
-          dataPopup.setContent(`<div style="text-align:center"><p>Updated: <span style="font-weight:bold">${this.dateString} ${elementTime} UTC<span></p>
-          <p> Site: <a href="aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html">${site}</a> (${element[site_long]}, ${element[site_lat]}) </p>
-          <p>Latest: <span style="font-weight:bold">${activeReading}</span></p></div>`)
+          dataPopup.setContent(`<div style='text-align:center'><p>Updated: <span style='font-weight:bold'>${this.dateString} ${elementTime} UTC<span></p>
+          <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_long]}, ${element[site_lat]}) </p>
+          <p>Latest: <span style='font-weight:bold'>${activeReading}</span></p></div>`)
           dataPopup.openOn(this.map);
 
 
         });
 
-        marker.on("mouseout", () =>
+        marker.on('mouseout', () =>
         {
           dataPopup.isOpen() ? this.map.closePopup() : undefined;
         });
@@ -170,7 +170,7 @@ export class MarkerManager {
         }).setLatLng([element[site_lat],element[site_long]]);
         marker.bindPopup(extendedPopup);
 
-        marker.on("mouseover", async () =>
+        marker.on('mouseover', async () =>
         {
 
           dataPopup.setContent(`${element[site_name]} is currently inactive <br/> `)
@@ -178,7 +178,7 @@ export class MarkerManager {
 
         });
 
-        marker.on("mouseout", () =>
+        marker.on('mouseout', () =>
         {
           dataPopup.isOpen() ? this.map.closePopup() : undefined;
         });
@@ -187,7 +187,7 @@ export class MarkerManager {
 
         const site = element[site_name]
 
-        marker.on("click", async () =>
+        marker.on('click', async () =>
         {
           const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
           const timedSiteData = await getFullData(avgUrl)
@@ -195,30 +195,30 @@ export class MarkerManager {
 
           if (chartData.length == 0)
           {
-            extendedPopup.setContent(`<p><span style="font-weight:bold">Site is currently offline</span> </p>
-            <p>${site} has been <span style="font-weight:bold">inactive</span> within the past thirty days. no data to display.</p>
-            <p> Site: <a href="aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html">${site}</a> ${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
+            extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
+            <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p>
+            <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> ${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
             extendedPopup.openOn(this.map)
           }
           else
           {
             const chartControl = this.createMarkerChart(chartData)
             const lastElement = latestOfSet(chartData)
-            const lastDate = lastElement[0].x.split(":")
+            const lastDate = lastElement[0].x.split(':')
 
             this.updateDateString(lastDate)
 
             extendedPopup.setContent(`
-              <p><span style="font-weight:bold">Site is currently offline</span> </p>
-              <div id='testtype'><p> ${site} has been active within the past thirty days. <span style="font-weight:bold">${this.dateString}</span> is when the most recent reading occured.</p>
-              <p> Site: <a href="aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html">${site}</a> (${element[site_lat]},${element[site_long]})</p>
+              <p><span style='font-weight:bold'>Site is currently offline</span> </p>
+              <div id='testtype'><p> ${site} has been active within the past thirty days. <span style='font-weight:bold'>${this.dateString}</span> is when the most recent reading occured.</p>
+              <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
               <p> <a href=${avgUrl}>View Raw</a></p>
               </div>`);
 
             extendedPopup.openOn(this.map);
             chartControl.addTo(this.map);
 
-            marker.on("popupclose", (event) => {
+            marker.on('popupclose', (event) => {
               // delete chart object on closing popup (GARBAGE COLLECTION)
               this.chartClear(chartControl)
             })
@@ -347,7 +347,7 @@ export class MarkerManager {
     date[0] = parseInt(date[0])+1;
     //setting month
     date[1] = parseInt(date[1])-1;
-    this.dateString = new Date(Date.UTC(date[2], date[1], date[0])).toLocaleString('en-US', { month: 'long', day: "2-digit", year: "numeric" });
+    this.dateString = new Date(Date.UTC(date[2], date[1], date[0])).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
 
   }
 }
