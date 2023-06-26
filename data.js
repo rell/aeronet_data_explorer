@@ -10,14 +10,11 @@ const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
 
 export async function getAllSites()
 {
-    try 
+    try
     {
-
-        // If mode is ALL POINT = 10
-        // Only keep points with an currentHr from current UTC times
-        const response = await fetch(allSites, { mode: 'no-cors'})
-        .then(response => response.text())
-        .catch(error => console.log(error))
+        const response = await fetch(allSites, {method:'GET', mode:'no-cors'})
+            .then(response => response.text())
+            .catch(error => console.log(error))
         const config = {
             delimiter: ',',
             newline: '\n',
@@ -31,7 +28,7 @@ export async function getAllSites()
     } catch (error) {
         console.error(error);
         throw new Error('Failed to get data');
-    
+
     }
 }
 
@@ -40,38 +37,30 @@ export async function getSitesData(args, dataType, time)
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     try {
+
+        const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
+            .then(response => response.text())
+            .catch(error => console.log(error))
+        const config = {
+            delimiter: ',',
+            newline: '\n',
+            header: true,
+            skipEmptyLines: true,
+        }
+
         if(dataType.toString() === '20') // daily avg
         {
-            // If mode is ALL POINT = 10
-            // Only keep points with an currentHr from current UTC times
-            const response = await fetch(apiUrl.concat(args), { mode: 'no-cors'})
-                .then(response => response.text())
-                .catch(error => console.log(error))
-            const config = {
-                delimiter: ',',
-                newline: '\n',
-                header: true,
-                skipEmptyLines: true,
-            }
+            // If mode is ALL POINT = 20
+            // keep all points
 
             const data = response.split(splitCsvAt)[1] // CSV
             const objs = await Papa.parse(data, config)
-
             return objs.data;
         }
         if (dataType.toString() === '10') // all points
         {
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
-            const response = await fetch(apiUrl.concat(args), { mode: 'no-cors'})
-                .then(response => response.text())
-                .catch(error => console.log(error))
-            const config = {
-                delimiter: ',',
-                newline: '\n',
-                header: true,
-                skipEmptyLines: true,
-            }
 
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
@@ -79,10 +68,8 @@ export async function getSitesData(args, dataType, time)
         }
         // return objs.data
     } catch (error) {
-
         console.error(error);
         throw new Error('Failed to get data');
-
     }
 }
 
@@ -187,7 +174,7 @@ export async function getFullData(url)
     try
     {
         const initial_key = 'AERONET_Site,';
-        const response = await fetch(url, { mode: 'no-cors'})
+        const response = await fetch(url, {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error));
         const config = {
@@ -220,9 +207,9 @@ export function getAvg (objs, site, opticalDepth)
     let totalAvg = 0;
     let aodAvg = 0;
     objs.forEach((element, i) =>
-       // get all objects that are within the list =>
-       (element[activeSiteKey] === site &&
-       !element[opticalDepth].toString().includes(invalidReading)) ? (aodAvg += parseFloat(element[opticalDepth]), totalAvg+=1) : undefined);
+        // get all objects that are within the list =>
+        (element[activeSiteKey] === site &&
+            !element[opticalDepth].toString().includes(invalidReading)) ? (aodAvg += parseFloat(element[opticalDepth]), totalAvg+=1) : undefined);
 
     return (aodAvg/totalAvg).toPrecision(4);
 }
@@ -237,8 +224,8 @@ export function withinTime (timeTolerance, dataset, time)
     let withinTime = [];
     if (time === null)
     {
-         currentHr = getDate().getUTCHours();
-         currentMn = getDate().getUTCMinutes();
+        currentHr = getDate().getUTCHours();
+        currentMn = getDate().getUTCMinutes();
     }else {
         currentHr = time[0];
         currentMn = time[1];
@@ -247,7 +234,7 @@ export function withinTime (timeTolerance, dataset, time)
     dataset.forEach( element => {
         (currentHr === element[siteTime].split(':')[0])  ||
         (currentHr-timeTolerance <= element[siteTime].split(':')[0] && currentMn <= element[siteTime].split(':')[1])
-         ? withinTime.push(element) : undefined;
+            ? withinTime.push(element) : undefined;
     });
 
     return withinTime;
@@ -267,7 +254,7 @@ export function latestOfSet(objs)
 
 export async function getStateCountry(latitude, longitude)
 {
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, { mode: 'no-cors'})
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {method:'GET', mode:'no-cors'})
         .then(response => response.json())
         .then(data => { return [data["address"]["state"], data["address"]["country"]] })
         .catch(error => console.log(error));
