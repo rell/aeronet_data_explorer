@@ -65,8 +65,9 @@ export function createColorLegend()
 
 export function updateTime(date = null, time = null, previouslySet = false)
 {
+    const currentTimeDiv = document.getElementById('currentTime');
+
     if (date === null || previouslySet === false) {
-        const currentTimeDiv = document.getElementById('currentTime');
         const now = getDate();
         const year = now.getFullYear().toString();
         const month = now.getUTCMonth().toString().padStart(2, '0');
@@ -75,16 +76,15 @@ export function updateTime(date = null, time = null, previouslySet = false)
         const minutes = now.getUTCMinutes().toString().padStart(2, '0');
         const dateString = new Date(Date.UTC(year, month, day)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
         currentTimeDiv.innerHTML = `${dateString} ${hours}:${minutes} UTC`; // time string
-        currentTimeDiv.style.textAlign = 'center';
-        currentTimeDiv.style.fontSize = '14px';
+
     }else {
         const [hour, minute] = time;
-        const currentTimeDiv = document.getElementById('currentTime');
         const dateString = new Date(Date.UTC(date[0], parseFloat(date[1])-1, parseFloat(date[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
         currentTimeDiv.innerHTML = `${dateString} ${hour}:${minute} UTC`; // time string
-        currentTimeDiv.style.textAlign = 'center';
-        currentTimeDiv.style.fontSize = '14px';
+
     }
+    currentTimeDiv.style.textAlign = 'center';
+    currentTimeDiv.style.fontSize = '14px';
 }
 
 export function updateAOD(optical_dep)
