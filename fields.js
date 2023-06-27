@@ -26,12 +26,14 @@ export class FieldInitializer {
             .filter(element => (element.startsWith('AOD_')))
             .map(element => ({ value: element, label: element.split('_')[1] }));
 
+        // sort based on numerical value of AOD descending order
         this.aodFieldData.sort((a, b) => {
             const aValue = parseInt(a.label.slice(0, -2));
             const bValue = parseInt(b.label.slice(0, -2));
             return bValue - aValue;
         });
 
+        // sort alphabetically descending order
         const sitenames = this.allSiteData.map(obj => obj['Site_Name']);
         this.siteFieldData = sitenames.map(element => ({ value: element, label: element}))
             .sort((a, b) => a.value.localeCompare(b.value));
