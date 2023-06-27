@@ -2,7 +2,7 @@ function  setColorScale()
 {
     return d3.scaleLinear()
         .domain([0, (1/6), ((1/6)*2), ((1/6)*3), ((1/6)*4), ((1/6)*5), 1])
-        .range(['blue', 'teal', 'green', 'yellow', 'orange', 'red']);
+        .range(['blue', 'teal', 'green', 'chartreuse', 'yellow', 'orange','red']);
 }
 
 export function setColor(value)
