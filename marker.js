@@ -19,7 +19,7 @@ export class MarkerManager {
     this.chartTimeLength = 30; // days to capture chart avgs
   }
 
-  addMarker(data, active_depth) {
+  addMarker(data, activeDepth) {
 
     // keys of active sites
     const site_name = 'AERONET_Site';
@@ -29,7 +29,7 @@ export class MarkerManager {
     const site_time = 'Time(hh:mm:ss)';
 
     data.forEach( async element => {
-      if (!element[active_depth].toString().includes('-999'))
+      if (!element[activeDepth].toString().includes('-999'))
       {
         // active sites will be used for creating inactive sites
         this.active.push(element[site_name].toLowerCase());
@@ -40,7 +40,7 @@ export class MarkerManager {
               color: '#000000',
               weight: 0,
               riseOnHover: true,
-              fillColor: setColor(element[active_depth]),
+              fillColor: setColor(element[activeDepth]),
               fillOpacity: 0.8,
               radius: 5
             });
@@ -66,18 +66,18 @@ export class MarkerManager {
 
 
 
-        const hourAvg = getAvg(data, element[site_name], active_depth)
+        const hourAvg = getAvg(data, element[site_name], activeDepth)
         const elementTime = element[site_time]
         const elementDate = element[site_date]
         const site = element[site_name]
-        const activeReading = parseFloat(element[active_depth]).toPrecision(4)
+        const activeReading = parseFloat(element[activeDepth]).toPrecision(4)
 
 
         marker.on('click', async () =>
         {
           const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
           const timedSiteData = await getFullData(avgUrl)
-          const chartData = buildChartData(timedSiteData, active_depth, this.startDate, this.endDate);
+          const chartData = buildChartData(timedSiteData, activeDepth, this.startDate, this.endDate);
           const chartControl = this.createMarkerChart(chartData)
           chartControl.addTo(this.map);
           const lastDate = elementDate.split(':')
@@ -161,7 +161,7 @@ export class MarkerManager {
           offset: [0,-2]
         }).setLatLng([element[site_lat],element[site_long]]);
 
-        var extendedPopup = L.popup({
+        let extendedPopup = L.popup({
           // autoPan: false,
           keepInView: true,
           closeButton: true,
@@ -172,10 +172,8 @@ export class MarkerManager {
 
         marker.on('mouseover', async () =>
         {
-
-          dataPopup.setContent(`${element[site_name]} is currently inactive <br/> `)
+          dataPopup.setContent(`${element[site_name]} is currently inactive <br/>`)
           dataPopup.openOn(this.map)
-
         });
 
         marker.on('mouseout', () =>
@@ -193,15 +191,7 @@ export class MarkerManager {
           const timedSiteData = await getFullData(avgUrl)
           const chartData = buildChartData(timedSiteData, active_depth, this.startDate, this.endDate);
 
-          if (chartData.length == 0)
-          {
-            extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
-            <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p>
-            <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> ${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
-            extendedPopup.openOn(this.map)
-          }
-          else
-          {
+          if (chartData.length !== 0) {
             const chartControl = this.createMarkerChart(chartData)
             const lastElement = latestOfSet(chartData)
             const lastDate = lastElement[0].x.split(':')
@@ -222,6 +212,11 @@ export class MarkerManager {
               // delete chart object on closing popup (GARBAGE COLLECTION)
               this.chartClear(chartControl)
             })
+          } else {
+            extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
+            <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p>
+            <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> ${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
+            extendedPopup.openOn(this.map)
           }
 
         });
