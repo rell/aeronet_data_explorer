@@ -52,14 +52,13 @@ export async function getSitesData(args, dataType, time, date = null)
         {
             // If mode is ALL POINT = 20
             // validate API dates
-            const data = response.split(splitCsvAt)[1] // CSV
-            console.log(data)
-            const objs = await Papa.parse(data, config)
+            const data = response.split(splitCsvAt)[1]; // CSV
+            const objs = await Papa.parse(data, config);
 
             // validate time is correct -> fixes api returning wrong date
             if(date !== null)
             {  
-                return validateTime(objs.data, date)
+                return validateTime(objs.data, date);
             }
             return objs.data;
         }
