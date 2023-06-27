@@ -32,7 +32,7 @@ export async function getAllSites()
     }
 }
 
-export async function getSitesData(args, dataType, time)
+export async function getSitesData(args, dataType, time, date = null)
 {
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
@@ -48,16 +48,21 @@ export async function getSitesData(args, dataType, time)
             skipEmptyLines: true,
         }
 
-        if(dataType.toString() === '20') // daily avg
+        if(dataType === 20) // daily avg
         {
             // If mode is ALL POINT = 20
-            // keep all points
-
+            // validate API dates
             const data = response.split(splitCsvAt)[1] // CSV
             const objs = await Papa.parse(data, config)
+
+            // validate time is correct -> fixes api returning wrong date
+            if(date !== null)
+            {  
+                return validateTime(objs.data, date)
+            }
             return objs.data;
         }
-        if (dataType.toString() === '10') // all points
+        if (dataType === 10) // all points
         {
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
@@ -123,6 +128,21 @@ function buildDates(date)
     let [month, day, year] = date
     return [year, month, day]
 }
+
+export function validateTime(data, date)
+{
+    const site_date = 'Date(dd:mm:yyyy)';
+    return data.filter((obj) => {
+        // Date(dd:mm:yyyy)
+        let [objDay, objMonth, objYear] = obj[site_date].split(':');
+        let [dateYear, dateMonth, dateDay] = date;
+        const timestamp = new Date(objYear, objMonth, objDay).getTime();
+        const setDate = new Date(dateYear, dateMonth, dateDay).getTime();
+        return timestamp === setDate;
+    });
+}
+
+
 export function buildChartData(data, activeDepth, startDate, endDate)
 {
     if (startDate.join() === endDate.join())
@@ -150,7 +170,7 @@ export function buildChartData(data, activeDepth, startDate, endDate)
         endDate = buildDates(endDate)
         let [endYear, endMonth, endDay] = endDate;
         let [startYear, startMonth, startDay] = startDate;
-        return  cleanedData.filter(obj => {
+        return  cleanedData.filter((obj) => {
             let [month, day, year] = obj.x.split(':');
             let dataTime = [month, day, year]
             dataTime = buildDates(dataTime);

@@ -16,7 +16,7 @@ const [startYear, startMonth, startDay] = getDate().toISOString().split('T')[0].
 const date = [startMonth, startDay, startYear];
 const args = `?year=${date[2]}&month=${date[0]}&day=${date[1]}&AOD15=1&AVG=10&if_no_html=1`;
 // initial pull of data
-const site_data = await getSitesData(args, '10', null); // passing default args and (realtime = 10)
+const site_data = await getSitesData(args, 10, null); // passing default args and (realtime = 10)
 const all_site_data = await getAllSites();
 
 // default optical depth

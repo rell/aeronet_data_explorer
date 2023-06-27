@@ -1,4 +1,4 @@
-import {getSitesData, latestOfSet} from './data.js';
+import {getSitesData, latestOfSet, validateTime} from './data.js';
 import {getDate, updateAOD, updateTime} from './components.js';
 import {initDropdown} from './init.js';
 
@@ -76,15 +76,15 @@ export class FieldInitializer {
         dataDropdownElm.addEventListener('change', async event =>  {
             this.updateAvg(event.target.value);
             this.updateApiArgs();
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time);
+            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
             updateTime(this.date, this.time, this.previouslySetTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true;
         });
 
         // site list field
-        const siteropdownElm = document.getElementById('site-drop-down');
-        siteropdownElm.addEventListener('change', event => {
+        const sitedropdownElm = document.getElementById('site-drop-down');
+        sitedropdownElm.addEventListener('change', event => {
             const selectedValue = event.target.value;
             const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
             this.map.setView([result['Latitude(decimal_degrees)'],result['Longitude(decimal_degrees)']],15);
@@ -105,16 +105,16 @@ export class FieldInitializer {
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
             let dateValue = document.getElementById('date-input').value;
-            const date = dateValue.split('T')[0].split('-')
-            this.date = [date[0],date[1],date[2]]
-            let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':')
-            this.time = [hour, min]
-            this.updateApiArgs()
-            this.previouslySetTime = true
+            const date = dateValue.split('T')[0].split('-');
+            this.date = [date[0],date[1],date[2]];
+            let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':');
+            this.time = [hour, min];
+            this.updateApiArgs();
+            this.previouslySetTime = true;
             updateTime(this.date, this.time, this.previouslySetTime);
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time);
+            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
-            this.recentlySetInactive = true
+            this.recentlySetInactive = true;
         });
 
         const toggleInactiveOff = document.getElementById('hide-inactive');
