@@ -37,7 +37,7 @@ export async function getSitesData(args, dataType, time, date = null)
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     try {
-
+        console.log(apiUrl.concat(args))
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
@@ -47,12 +47,13 @@ export async function getSitesData(args, dataType, time, date = null)
             header: true,
             skipEmptyLines: true,
         }
-
-        if(dataType === 20) // daily avg
+        console.log(dataType)
+        if(dataType.toString() === '20') // daily avg
         {
             // If mode is ALL POINT = 20
             // validate API dates
             const data = response.split(splitCsvAt)[1] // CSV
+            console.log(data)
             const objs = await Papa.parse(data, config)
 
             // validate time is correct -> fixes api returning wrong date
@@ -62,7 +63,7 @@ export async function getSitesData(args, dataType, time, date = null)
             }
             return objs.data;
         }
-        if (dataType === 10) // all points
+        if (dataType.toString() === '10') // all points
         {
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
