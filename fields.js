@@ -1,7 +1,7 @@
+import {getSitesData, latestOfSet} from './data.js';
+import {getDate, updateAOD, updateTime} from './components.js';
+import {initDropdown} from './init.js';
 
-import { latestOfSet, getSitesData} from './data.js';
-import { updateTime, updateAOD, getDate } from './components.js';
-import { initDropdown } from './init.js';
 export class FieldInitializer {
     constructor(siteData, allSiteData, opticalDepth, map, markerLayer) {
         this.siteData = siteData;
@@ -103,8 +103,7 @@ export class FieldInitializer {
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
             let dateValue = document.getElementById('date-input').value;
-            const newDate = dateValue.split('T')[0].split('-')
-            const date = newDate
+            const date = dateValue.split('T')[0].split('-')
             this.date = [date[0],date[1],date[2]]
             let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':')
             this.time = [hour, min]
