@@ -83,15 +83,15 @@ body{
 
 .legend, #legend{
     position: absolute;
-    margin-left: 2px;
+    margin-right: 2px;
 }
 
 
 #legend {
     width: 250px;
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+    top: 10px;
+    right: 10px;
     background-color:rgba(255, 255, 255, 0.6);
     border: 1px solid #ccc;
     padding: 10px;

@@ -50,7 +50,7 @@ export function getEndDate(startDate, endLength)
 export function createColorLegend()
 {
     const colorScale = setColorScale();
-    const colorLegend = L.control({ position: 'bottomleft' });
+    const colorLegend = L.control({ position: 'topright' });
     colorLegend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'legend');
         div.innerHTML = `<div id='legend'><div id='legendMarker'><p>0</p><p>1</p></div>
