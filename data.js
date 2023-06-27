@@ -37,7 +37,6 @@ export async function getSitesData(args, dataType, time, date = null)
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     try {
-        console.log(apiUrl.concat(args))
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
@@ -47,7 +46,6 @@ export async function getSitesData(args, dataType, time, date = null)
             header: true,
             skipEmptyLines: true,
         }
-        console.log(dataType)
         if(dataType.toString() === '20') // daily avg
         {
             // If mode is ALL POINT = 20

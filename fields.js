@@ -78,7 +78,6 @@ export class FieldInitializer {
             this.updateApiArgs();
             this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
             updateTime(this.date, this.time, this.previouslySetTime);
-            console.log(this.siteData)
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true;
         });
