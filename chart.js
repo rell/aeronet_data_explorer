@@ -6,7 +6,7 @@ export function drawGraph(data, canvas)
     data: {
       labels: data.map(d => d.x),
       datasets: [{
-        label: 'Daily Average (Month)',
+        // label: 'Daily Average (Month)',
         data: data.map(d => d.y),
         borderColor: 'black',
         // backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -15,6 +15,17 @@ export function drawGraph(data, canvas)
       }]
     },
     options: {
+      legend: {
+        display: false,
+      },
+      tooltips: {
+        callbacks:{
+          label: function(tooltipItem)
+          {
+            return tooltipItem.yLabel;
+          }
+        }
+      },
       scales: {
         yAxes: [
           {

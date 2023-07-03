@@ -17,7 +17,7 @@ const date = [startMonth, startDay, startYear];
 const args = `?year=${date[2]}&month=${date[0]}&day=${date[1]}&AOD15=1&AVG=10&if_no_html=1`;
 // initial pull of data
 const site_data = await getSitesData(args, 10, null); // passing default args and (realtime = 10)
-const all_site_data = await getAllSites();
+const all_site_data = await getAllSites(date[2]);
 
 // default optical depth
 let optical_depth = 'AOD_500nm'; // to be set by drop menu
@@ -40,7 +40,7 @@ markerLayer.startDate = getEndDate(date, 30);
 map.setView([0,0],1);
 
 // dynamically enlarge zoomed markers
-markerLayer.zoomedMarkers();
+// markerLayer.zoomedMarkers();
 
 // create fields
 const initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer);

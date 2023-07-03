@@ -38,24 +38,28 @@ export class FieldInitializer {
         this.siteFieldData = sitenames.map(element => ({ value: element, label: element}))
             .sort((a, b) => a.value.localeCompare(b.value));
 
-        const placeholder = 'Select';
-        const aodDisc = 'Select an optical depth (Default: 500nm)';
+        let placeholder = '500nm';
+        const aodDisc = 'Select wavelength for AOD';
         const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder);
 
-        const siteDisc = 'Select a site';
+        placeholder = 'Select'
+        const siteDisc = 'AEROnet Site: ';
         const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder);
 
-        const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
-        const dataTypeDisc = 'Select mode (Default: realtime)';
-        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder);
 
-        const calender = `<form><label for='date-input'>Display data from </label>
+        const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
+        const dataTypeDisc = 'Select mode';
+        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, true);
+
+        const calender = `<form><label for='date-input'>Select Day/Time </label>
                           <input type='text' id='date-input' name='date' data-toggle='flatpickr'>
                           <button type='button' id='submitButton'>Submit</button></form>`;
 
-        const inactiveOff = `<form><label for='hide-inacive'> Inactive markers:</label>
-                          <button type='button' id='hide-inactive'>Hide</button>
-                          <button type='button' id='show-inactive'>Show</button></form>`;
+        const inactiveOff = `<form><label for='hide-inacive'>Inactive station:</label>
+                             <input type="radio" id="hide-inactive" name="hide_marker" value="no">
+                             <label for="hide-inacive">Hide</label>
+                             <input type="radio" id="show-inactive" name="hide_marker" value="yes">
+                             <label for="show-inacive">Show</label></form>`;
 
 
         const fieldsContainer = document.getElementById('fields');
@@ -119,7 +123,8 @@ export class FieldInitializer {
 
         const toggleInactiveOff = document.getElementById('hide-inactive');
         toggleInactiveOff.addEventListener('click', event => {
-            if (this.recentlySetInactive) {
+            if (this.recentlySetInactive)
+            {
                 this.markerLayer.clearInactiveMarkers();
                 this.recentlySetInactive = false;
             }
@@ -127,7 +132,8 @@ export class FieldInitializer {
 
         const toggleInactiveOn = document.getElementById('show-inactive');
         toggleInactiveOn.addEventListener('click', event => {
-            if(!this.recentlySetInactive){
+            if(!this.recentlySetInactive)
+            {
                 this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
                 this.recentlySetInactive = true;
             }

@@ -3,16 +3,17 @@ import {getDate} from './components.js';
 // Latest data flow
 const date = getDate().toISOString().split('T')[0].split('-');
 const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
-const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
+// const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
 
 // const api_args = `?year=2023&month=6&day=11&AOD15=1&AVG=10&if_no_html=1`
 
 
-export async function getAllSites()
+export async function getAllSites(year)
 {
     try
     {
-        const response = await fetch(allSites, {method:'GET', mode:'no-cors'})
+        console.log(year)
+        const response = await fetch(`https://aeronet.gsfc.nasa.gov/Site_Lists_V3/aeronet_locations_v3_${year}_lev15.txt`, {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
         const config = {
@@ -22,7 +23,7 @@ export async function getAllSites()
             skipEmptyLines: true,
         }
 
-        const data = response.split(getDate().getFullYear())[1] // CSV
+        const data = response.split(`,${year}`)[1] // CSV
         const objs = await Papa.parse(data, config) // Avg for building js objects was ~7 ms
         return objs.data
     } catch (error) {
@@ -51,7 +52,8 @@ export async function getSitesData(args, dataType, time, date = null)
             // If mode is ALL POINT = 20
             // validate API dates
             const data = response.split(splitCsvAt)[1]; // CSV
-            const objs = await Papa.parse(data, config);
+ 
+           const objs = await Papa.parse(data, config);
 
             // validate time is correct -> fixes api returning wrong date
             if(date !== null)

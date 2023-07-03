@@ -33,7 +33,6 @@ export class MarkerManager {
       {
         // active sites will be used for creating inactive sites
         this.active.push(element[site_name].toLowerCase());
-
         const marker = L.circleMarker([element[site_lat], element[site_long]],
             {
               closePopupOnClick: false,
@@ -42,9 +41,9 @@ export class MarkerManager {
               riseOnHover: true,
               fillColor: setColor(element[activeDepth]),
               fillOpacity: 0.8,
-              radius: 5
+              radius: element[activeDepth]*1+4,
             });
-
+            
         const extendedPopup = L.popup({
           // autoPan: false,
           keepInView: true,
@@ -146,10 +145,10 @@ export class MarkerManager {
             {
               closePopupOnClick: false,
               color: '#000000',
-              weight: .5,
+              weight: 0,
               riseOnHover:true,
               fillColor: setColor('inactive'),
-              fillOpacity: 0.5,
+              fillOpacity: 0.1,
               radius: 4
             });
 
@@ -255,60 +254,61 @@ export class MarkerManager {
   //   this.markersInactiveLayer.bringToBack();
   // }
 
-  zoomedMarkers() {
-    // dynamically change size of markers when triggering zoomend -> leaflets zoom event
-    this.map.on('zoomend', () => {
-      let currentZoom = this.map.getZoom();
-      if (currentZoom > 10) {
-        //marker size if zoom > 10
-        this.markersLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(20);
-          }
-        });
-        this.markersInactiveLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(20);
-          }
-        });
-      }
 
-      if (currentZoom >= 5) {
-        // marker size if zoom > 5
-        this.markersLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(10);
-          }
-        });
-        this.markersInactiveLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(10);
-          }
-        });
+  // zoomedMarkers() {
+  //   // dynamically change size of markers when triggering zoomend -> leaflets zoom event
+  //   this.map.on('zoomend', () => {
+  //     let currentZoom = this.map.getZoom();
+  //     if (currentZoom > 10) {
+  //       //marker size if zoom > 10
+  //       this.markersLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*4);
+  //         }
+  //       });
+  //       this.markersInactiveLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*1);
+  //         }
+  //       });
+  //     }
 
-      } else {
+  //     if (currentZoom >= 5) {
+  //       // marker size if zoom > 5
+  //       this.markersLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*2);
+  //         }
+  //       });
+  //       this.markersInactiveLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*1);
+  //         }
+  //       });
 
-        // Default marker size
-        this.markersLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(4);
-          }
-        });
-        this.markersInactiveLayer.eachLayer(function(layer) {
-          if (layer instanceof L.CircleMarker) {
-            layer.setRadius(4);
-          }
-        });
-      }
-    });
-  }
+  //     } else {
+
+  //       // Default marker size
+  //       this.markersLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*5);
+  //         }
+  //       });
+  //       this.markersInactiveLayer.eachLayer(function(layer) {
+  //         if (layer instanceof L.CircleMarker) {
+  //           layer.setRadius(*1);
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 
   createMarkerChart(chartData)
   {
     const chartCanvas = document.createElement('canvas');
     chartCanvas.id = 'graph';
-    chartCanvas.width = 400;
-    chartCanvas.height = 300;
+    chartCanvas.width = 600;
+    chartCanvas.height = 200;
     this.chart = drawGraph(chartData, chartCanvas);
     const chartControl = L.control({position: 'bottomright'});
     chartControl.onAdd = function() {

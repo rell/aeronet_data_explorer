@@ -67,17 +67,20 @@ export function updateTime(date = null, time = null, previouslySet = false)
 {
     const currentTimeDiv = document.getElementById('currentTime');
 
-    if (date === null || previouslySet === false) {
+    if (date === null || previouslySet === false) 
+    {
         const now = getDate();
         const year = now.getFullYear().toString();
         const month = now.getUTCMonth().toString().padStart(2, '0');
         const day = (now.getDate()+1).toString().padStart(2, '0');
         const hours = now.getUTCHours().toString().padStart(2, '0');
+        const previousHour = (now.getUTCHours()-1).toString().padStart(2, '0');
         const minutes = now.getUTCMinutes().toString().padStart(2, '0');
         const dateString = new Date(Date.UTC(year, month, day)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
-        currentTimeDiv.innerHTML = `${dateString} ${hours}:${minutes} UTC`; // time string
-
-    }else {
+        currentTimeDiv.innerHTML = `${dateString} ${previousHour}:${minutes} ${hours}:${minutes} UTC`; // time string
+    }
+    else
+    {
         const [hour, minute] = time;
         const dateString = new Date(Date.UTC(date[0], parseFloat(date[1])-1, parseFloat(date[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
         currentTimeDiv.innerHTML = `${dateString} ${hour}:${minute} UTC`; // time string
@@ -92,11 +95,12 @@ export function updateAOD(optical_dep)
     optical_dep = optical_dep.split('_')[1]
     const currentTimeDiv = document.getElementById('AOD');
 
-    currentTimeDiv.innerHTML = `Displaying AOD: ${optical_dep}`; // aod string
+    currentTimeDiv.innerHTML = `Aerosol Optical Depth (${optical_dep})`; // aod string
     currentTimeDiv.style.textAlign = 'center';
     currentTimeDiv.style.fontSize = '14px';
 
 }
+
 export function getDate ()
 {
     return new Date();

@@ -11,7 +11,7 @@ export function initMap()
     ];
     const options = {
         layers: [layer],
-            minwidth: 200,
+        minwidth: 200,
         minZoom: 1,
         maxZoom: 18,
         maxBounds: bounds
@@ -22,11 +22,18 @@ export function initMap()
     return L.map('map', options);
 }
 
-export function initDropdown(id, options, fieldDescription, placeholder)// create dropdown fields
+export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder)// create dropdown fields
 {
     let dropdownHTML = `<label for=${id}>${fieldDescription}:</label>`
     dropdownHTML += `<select id='${id}'>`;
-    dropdownHTML += `<option value=''>${placeholder}</option>`;
+    if (disabledPlaceholder)
+    {
+        dropdownHTML += `<option value='' disabled>${placeholder}</option>`;
+    }
+    else
+    {
+        dropdownHTML += `<option value=''>${placeholder}</option>`;
+    }
     for (const option of options) {
         dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
     }
