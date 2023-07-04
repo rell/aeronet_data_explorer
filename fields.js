@@ -56,7 +56,7 @@ export class FieldInitializer {
                           <button type='button' id='submitButton'>Submit</button></form>`;
 
         const inactiveOff = `<form><label for='hide-inacive'>Inactive station:</label>
-                             <input type="radio" id="hide-inactive" name="hide_marker" value="no">
+                             <input type="radio" id="hide-inactive" name="hide_marker" value="no">
                              <label for="hide-inacive">Hide</label>
                              <input type="radio" id="show-inactive" name="hide_marker" value="yes">
                              <label for="show-inacive">Show</label></form>`;

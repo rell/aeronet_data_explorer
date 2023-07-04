@@ -1,8 +1,9 @@
 export function initMap()
 {
-    const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-    const basemap = 'http://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const layer = L.tileLayer(basemap, { attribution:copy, noWrap: false, tileSize: 256 });
+    // const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const basemap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const layer = L.tileLayer(basemap, {attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors', noWrap: false, tileSize: 256 });
+
 
     // Define the bounds for the map
     const bounds = [
@@ -28,7 +29,7 @@ export function initDropdown(id, options, fieldDescription, placeholder, disable
     dropdownHTML += `<select id='${id}'>`;
     if (disabledPlaceholder)
     {
-        dropdownHTML += `<option value='' disabled>${placeholder}</option>`;
+        dropdownHTML += `<option value='' disabled selected>${placeholder}</option>`;
     }
     else
     {
