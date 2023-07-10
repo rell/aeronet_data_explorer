@@ -29,13 +29,17 @@ export function initDropdown(id, options, fieldDescription, placeholder, disable
     dropdownHTML += `<select id='${id}'>`;
     if (disabledPlaceholder)
     {
-        dropdownHTML += `<option value='' disabled selected>${placeholder}</option>`;
+        dropdownHTML += `<option value='' disabled selected>${`placeholder`}</option>`;
     }
     else
     {
         dropdownHTML += `<option value=''>${placeholder}</option>`;
     }
     for (const option of options) {
+        if (option.value.toString().includes(placeholder))
+        {
+            console.log()
+        }
         dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
     }
     dropdownHTML += `</select>`;

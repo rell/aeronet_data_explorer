@@ -5,7 +5,7 @@ body{
 }
 #map {
     display: inline-flex;
-    width: 70%; /* Set map width to 70% */
+    width: 100%; /* Set map width to 70% */
     float: left;
     height: 500px;
 }
@@ -116,7 +116,14 @@ svg.leaflet-attribution-flag
 #legendMarker p {
     font-size: 10px;
     margin: 0;
-    padding: 0 190px 0 15px;
+    padding: 0 30.5px 0 15px;
+}
+
+.legend {
+    border-radius: 10px;
+    background-color: white;
+    margin-top: 10px;
+    opacity: .8;
 }
 
 #colorBar{
@@ -126,7 +133,7 @@ svg.leaflet-attribution-flag
     justify-content: center;
     /*width:;*/
     height: 10px;
-    margin: 0 20px 10px;
+    margin: 0 20px 0px;
 }
 
 #colorBar::before,
@@ -169,3 +176,39 @@ svg.leaflet-attribution-flag
 /*    margin: -5px auto 0;*/
 
 /*}*/
+
+#menu {
+    position: absolute;
+    top: 50px;
+    right: -250px;
+    width: 250px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease-in-out;
+    z-index: 1000;
+}
+#menu.menu-open {
+    right: 0;
+}
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    background-color: #f4f4f4;
+}
+.menu-header h2 {
+    margin: 0;
+}
+.menu-header button {
+    background-color: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+.menu-content {
+    padding: 10px;
+    background: white;
+}

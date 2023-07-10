@@ -41,6 +41,7 @@ export async function getSitesData(args, dataType, time, date = null)
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
+        console.log(apiUrl.concat(args))
         const config = {
             delimiter: ',',
             newline: '\n',
@@ -64,13 +65,16 @@ export async function getSitesData(args, dataType, time, date = null)
         }
         if (dataType.toString() === '10') // all points
         {
+
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
-
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
+            console.log(objs.data, myTime)
+
             return withinTime(1, objs.data, myTime);
         }
+        // console.log(objs.data)
         // return objs.data
     } catch (error) {
         console.error(error);
@@ -236,12 +240,14 @@ export function getAvg (objs, site, opticalDepth)
 
 export function withinTime (timeTolerance, dataset, time)
 {
+    console.log(timeTolerance, time)
     // keys of data
     const siteTime = 'Time(hh:mm:ss)';
-
     let currentHr = null;
+
     let currentMn = null;
     let withinTime = [];
+    let startHr; // time to get in relation to current time (startTime - currentTime)
     if (time === null)
     {
         currentHr = getDate().getUTCHours();
@@ -250,10 +256,23 @@ export function withinTime (timeTolerance, dataset, time)
         currentHr = time[0];
         currentMn = time[1];
     }
+    console.log(currentHr)
+    if (parseFloat(currentHr) === 0 || parseFloat(currentHr)-timeTolerance < 0)
+    {
+        let newStartHr =  parseFloat(currentHr) - timeTolerance;
+        startHr = 24 - newStartHr;
+    }
+    else
+    {
+
+        startHr = currentHr-timeTolerance
+    }
+    console.log(startHr)
+    // console.log(startHr)
     // do tolerance check whilst adding points to map for adding only points that are within an hour tolerance of the current hour
     dataset.forEach( element => {
         (currentHr === element[siteTime].split(':')[0])  ||
-        (currentHr-timeTolerance <= element[siteTime].split(':')[0] && currentMn <= element[siteTime].split(':')[1])
+        (startHr <= element[siteTime].split(':')[0] && currentMn <= element[siteTime].split(':')[1])
             ? withinTime.push(element) : undefined;
     });
 

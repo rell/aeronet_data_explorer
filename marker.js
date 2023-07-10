@@ -17,7 +17,9 @@ export class MarkerManager {
     this.endDate = getEndDate(this.startDate, 30);
     this.dateString = null;
     this.chartTimeLength = 30; // days to capture chart avgs
+    this.previousZoom = undefined;
     this.resetMap()
+    this.pulloutMenu()
     this.zoomedMarkers()
   }
 
@@ -43,7 +45,7 @@ export class MarkerManager {
               riseOnHover: true,
               fillColor: setColor(element[activeDepth]),
               fillOpacity: .85,
-              radius: element[activeDepth],
+              radius: parseFloat(element[activeDepth])+4,
             });
             
         const extendedPopup = L.popup({
@@ -100,7 +102,7 @@ export class MarkerManager {
 
           extendedPopup.openOn(this.map);
 
-          marker.on('popupclose', (event) => {
+          marker.on('popupclose', event => {
             this.chartClear(chartControl)
           })
         });
@@ -150,8 +152,8 @@ export class MarkerManager {
               weight: 0,
               riseOnHover:true,
               fillColor: setColor('inactive'),
-              fillOpacity: 0.25,
-              radius: 0
+              fillOpacity: 0.40,
+              radius: 4
             });
 
         let dataPopup = L.popup({
@@ -256,54 +258,52 @@ export class MarkerManager {
   //   this.markersInactiveLayer.bringToBack();
   // }
 
+  // changeMarkerRadius(args) {
+  //   this.markersLayer.eachLayer((layer) => {
+  //     if (layer instanceof L.CircleMarker) {
+  //       console.log(parseFloat(layer.getRadius()) + parseFloat(args))
+  //       layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+  //     }
+  //   });
+  //
+  //   this.markersInactiveLayer.eachLayer((layer) => {
+  //     if (layer instanceof L.CircleMarker) {
+  //       console.log(parseFloat(layer.getRadius()) + parseFloat(args))
+  //       layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+  //     }
+  //   });
+  // }
 
   zoomedMarkers() {
     // dynamically change size of markers when triggering zoomend -> leaflets zoom event
     this.map.on('zoomend', () => {
+      const zoomLevel = this.map.getZoom();
       const currentZoom = this.map.getZoom();
-      let scalingFactor, maxRadius, fillOpacity;
-
-      if (currentZoom >= 15) {
-        //marker size if zoom > 15
-        scalingFactor = 3;
-        maxRadius = 60;
-        fillOpacity = 0.8;
-      } else if (currentZoom >= 10) {
-        //marker size if zoom > 10
-        scalingFactor = 5;
-        maxRadius = 40;
-        fillOpacity = 0.8;
-      } else if (currentZoom >= 5) {
-        // marker size if zoom > 5
-        scalingFactor = 2;
-        maxRadius = 20;
-        fillOpacity = 0.8;
+      console.log(currentZoom,this.previousZoom)
+      if (currentZoom < this.previousZoom) {
+        this.previousZoom = currentZoom;
+        console.log("ZOOMING OUT")
+        // this.changeMarkerRadius(-currentZoom-1)
       } else {
-        // Default marker size
-        scalingFactor = 1;
-        maxRadius = 10;
-        fillOpacity = 0.2;
+        this.previousZoom = currentZoom;
+        console.log("Zooming IN")
+        const opacity = currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
+        this.markersInactiveLayer.eachLayer((layer) => {
+          if (layer instanceof L.CircleMarker) {
+            // console.log(parseFloat(layer.getRadius()) + parseFloat(args))
+            // layer.setOpacity(opacity);8
+          }
+        });
+        // this.changeMarkerRadius(+currentZoom)
       }
 
-      // Update marker size and opacity
-      this.markersLayer.eachLayer((layer) => {
-        console.log(scalingFactor)
-        if (layer instanceof L.CircleMarker) {
-          const radius = Math.min(layer.getRadius() * scalingFactor + this.defaultRadius, maxRadius);
-          layer.setRadius(radius);
-          layer.setStyle({ fillOpacity : 1});
-        }
-      });
-
-      this.markersInactiveLayer.eachLayer((layer) => {
-        if (layer instanceof L.CircleMarker) {
-          const radius = Math.min(layer.getRadius() * scalingFactor + this.defaultRadius, maxRadius);
-          layer.setRadius(radius);
-          layer.setStyle({ fillOpacity: fillOpacity * 0.6 });
-        }
-      });
+      // Update marker size and opacity for active markers
     });
   }
+
+
+
+
   createMarkerChart(chartData)
   {
     const chartCanvas = document.createElement('canvas');
@@ -346,9 +346,27 @@ export class MarkerManager {
         return button;
       }
     });
-    var myControl = new customControl();
-    
-    myControl.addTo(this.map);
+
+    this.map.addControl(new customControl());
+  }
+
+  pulloutMenu()
+  {
+    var menuControl = L.Control.extend({
+      options: {
+        position: 'topright'
+      },
+      onAdd: function () {
+        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        container.innerHTML = '<div class="menu-header"><h2>Filters</h2><button id="menu-toggle"><i class="fas fa-times"></i></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
+          L.DomUtil.hasClass(container, 'menu-open') ? L.DomUtil.removeClass(container, 'menu-open') : L.DomUtil.addClass(container, 'menu-open');
+        });
+        return container;
+      }
+    });
+    this.map.addControl(new menuControl());
   }
 
   // applyToMap()
