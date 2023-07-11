@@ -468,7 +468,7 @@ export class MarkerManager {
       },
       onAdd: function () {
         var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        container.innerHTML = '<div class="menu-header"><h2>Filters</h2><button id="menu-toggle"><i class="fas fa-times"></i></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
+        container.innerHTML = '<div class="menu-header"><button id="menu-toggle"><p class="filter-title">Filters</p></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
           var menuContent = container.querySelector('.menu-content');

@@ -16,8 +16,7 @@ svg.leaflet-attribution-flag
 
 #form {
     display: flex;
-    width: 30%; /* Set fields width to 30% */
-    height: 500px;
+    /*height: auto;*/
 }
 #fields {
     display: flex;
@@ -81,8 +80,8 @@ svg.leaflet-attribution-flag
   }
 
 .leaflet-container .dataview-chart {
-    width:50px;
-    height:25px;
+    width:10%;
+    height:2%;
 }
 
 
@@ -93,7 +92,7 @@ svg.leaflet-attribution-flag
 
 
 #legend {
-    width: 250px;
+    /*width: 20%;*/
     position: absolute;
     top: 10px;
     right: 10px;
@@ -165,8 +164,8 @@ svg.leaflet-attribution-flag
 
 }
 .leaflet-control-graph {
-    width: 500px;
-    height: 200px;
+    width: 98%;
+    height: auto;
     background: rgb(255, 255, 255, 0.5);
 }
 
@@ -223,4 +222,9 @@ svg.leaflet-attribution-flag
 /* Styles for the menu content when it's open */
 #menu.menu-open .menu-content {
     display: block;
+}
+
+.filter-title
+{
+    font-size: 15px;
 }
