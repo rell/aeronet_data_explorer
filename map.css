@@ -64,6 +64,7 @@ svg.leaflet-attribution-flag
 .leaflet-popup-tip-container {
 }
 
+
   
 
 .custom-popup .leaflet-popup-content-wrapper a {
@@ -224,7 +225,8 @@ svg.leaflet-attribution-flag
     display: block;
 }
 
-.filter-title
+.filter-title, p
 {
+    margin: 1px;
     font-size: 15px;
 }
