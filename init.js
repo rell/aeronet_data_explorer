@@ -1,8 +1,9 @@
 export function initMap()
 {
-    const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-    const basemap = 'http://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const layer = L.tileLayer(basemap, { attribution:copy, noWrap: false, tileSize: 256 });
+    // const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const basemap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const layer = L.tileLayer(basemap, {attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a> ', noWrap: false, tileSize: 256 });
+
 
     // Define the bounds for the map
     const bounds = [
@@ -11,7 +12,7 @@ export function initMap()
     ];
     const options = {
         layers: [layer],
-            minwidth: 200,
+        minwidth: 200,
         minZoom: 1,
         maxZoom: 18,
         maxBounds: bounds
@@ -22,13 +23,24 @@ export function initMap()
     return L.map('map', options);
 }
 
-export function initDropdown(id, options, fieldDescription, placeholder)// create dropdown fields
+export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder)// create dropdown fields
 {
     let dropdownHTML = `<label for=${id}>${fieldDescription}:</label>`
     dropdownHTML += `<select id='${id}'>`;
-    dropdownHTML += `<option value=''>${placeholder}</option>`;
+
+    if (disabledPlaceholder)
+    {
+        dropdownHTML += `<option value='' selected>${placeholder}</option>`;
+
+    }
     for (const option of options) {
-        dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
+        if (option.value.toString().includes(placeholder) && !disabledPlaceholder)
+        {
+            dropdownHTML += `<option value='${option.value}' selected>${option.label}</option>`;
+        } else
+        {
+            dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
+        }
     }
     dropdownHTML += `</select>`;
     return dropdownHTML;

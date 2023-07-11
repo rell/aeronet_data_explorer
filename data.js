@@ -3,16 +3,16 @@ import {getDate} from './components.js';
 // Latest data flow
 const date = getDate().toISOString().split('T')[0].split('-');
 const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
-const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
+// const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
 
 // const api_args = `?year=2023&month=6&day=11&AOD15=1&AVG=10&if_no_html=1`
 
 
-export async function getAllSites()
+export async function getAllSites(year)
 {
     try
     {
-        const response = await fetch(allSites, {method:'GET', mode:'no-cors'})
+        const response = await fetch(`https://aeronet.gsfc.nasa.gov/Site_Lists_V3/aeronet_locations_v3_${year}_lev15.txt`, {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
         const config = {
@@ -22,7 +22,7 @@ export async function getAllSites()
             skipEmptyLines: true,
         }
 
-        const data = response.split(getDate().getFullYear())[1] // CSV
+        const data = response.split(`,${year}`)[1] // CSV
         const objs = await Papa.parse(data, config) // Avg for building js objects was ~7 ms
         return objs.data
     } catch (error) {
@@ -36,6 +36,7 @@ export async function getSitesData(args, dataType, time, date = null)
 {
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
+    console.log(apiUrl.concat(args))
     try {
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
@@ -51,7 +52,7 @@ export async function getSitesData(args, dataType, time, date = null)
             // If mode is ALL POINT = 20
             // validate API dates
             const data = response.split(splitCsvAt)[1]; // CSV
-            const objs = await Papa.parse(data, config);
+           const objs = await Papa.parse(data, config);
 
             // validate time is correct -> fixes api returning wrong date
             if(date !== null)
@@ -62,13 +63,15 @@ export async function getSitesData(args, dataType, time, date = null)
         }
         if (dataType.toString() === '10') // all points
         {
+
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
-
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
+
             return withinTime(1, objs.data, myTime);
         }
+        // console.log(objs.data)
         // return objs.data
     } catch (error) {
         console.error(error);
@@ -234,27 +237,57 @@ export function getAvg (objs, site, opticalDepth)
 
 export function withinTime (timeTolerance, dataset, time)
 {
+    console.log(time)
     // keys of data
     const siteTime = 'Time(hh:mm:ss)';
-
     let currentHr = null;
+
     let currentMn = null;
     let withinTime = [];
+    let startHr; // time to get in relation to current time (startTime - currentTime)
     if (time === null)
     {
         currentHr = getDate().getUTCHours();
         currentMn = getDate().getUTCMinutes();
+        console.log(currentHr)
+        startHr = currentHr === 0 ? '23' : (currentHr - 1).toString().padStart(2, '0');
+
     }else {
         currentHr = time[0];
         currentMn = time[1];
+        if (parseInt(currentHr) === 0 || parseInt(currentHr) - timeTolerance < 0) {
+            let newStartHr = parseInt(currentHr) - timeTolerance;
+            startHr = 24 + newStartHr;
+            startHr = startHr.toString().padStart(2, '0');
+        } else {
+            startHr = parseInt(currentHr) - timeTolerance;
+            startHr = startHr.toString().padStart(2, '0');
+        }
+        currentMn = currentMn.toString().padStart(2, '0');
     }
+
+    console.log(dataset)
     // do tolerance check whilst adding points to map for adding only points that are within an hour tolerance of the current hour
     dataset.forEach( element => {
-        (currentHr === element[siteTime].split(':')[0])  ||
-        (currentHr-timeTolerance <= element[siteTime].split(':')[0] && currentMn <= element[siteTime].split(':')[1])
-            ? withinTime.push(element) : undefined;
+        const [siteHours, siteMinutes, siteSeconds] = element[siteTime].split(':').map(Number);
+        const currentHours = parseInt(currentHr);
+        const currentMinutes = parseInt(currentMn);
+        const startHours = parseInt(startHr);
+        let isBetween;
+        if(parseInt(currentHr) !== 0) {
+            isBetween = (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
+                && (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
+                && (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes));
+        }
+        else
+        {
+            isBetween = ((currentHours === siteHours && currentMinutes > siteMinutes) || (currentHr === siteHours && currentMinutes === siteMinutes))
+                        || (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes))
+        }
+        // console.log(`start Time:${startHr}: current${currentMn}-${currentHr}:${currentMn} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
+        isBetween ? withinTime.push(element) : undefined;
     });
-
+    // console.log(withinTime)
     return withinTime;
 }
 

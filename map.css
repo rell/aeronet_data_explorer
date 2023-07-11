@@ -5,19 +5,23 @@ body{
 }
 #map {
     display: inline-flex;
-    width: 70%; /* Set map width to 70% */
+    width: 100%; /* Set map width to 70% */
     float: left;
     height: 500px;
+}
+svg.leaflet-attribution-flag
+{
+  display: none !important;
 }
 
 #form {
     display: flex;
-    width: 30%; /* Set fields width to 30% */
-    height: 500px;
+    /*height: auto;*/
 }
 #fields {
     display: flex;
     flex-direction: column;
+    margin: 10px
 }
 /*.row {*/
 /*    display: flex;*/
@@ -76,8 +80,8 @@ body{
   }
 
 .leaflet-container .dataview-chart {
-    width:50px;
-    height:25px;
+    width:10%;
+    height:2%;
 }
 
 
@@ -88,11 +92,11 @@ body{
 
 
 #legend {
-    width: 250px;
+    /*width: 20%;*/
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color:rgba(255, 255, 255, 0.6);
+
     border: 1px solid #ccc;
     padding: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -111,7 +115,14 @@ body{
 #legendMarker p {
     font-size: 10px;
     margin: 0;
-    padding: 0 190px 0 15px;
+    padding: 0 30.5px 0 15px;
+}
+
+.legend {
+    border-radius: 10px;
+    background-color:rgba(255, 255, 255, 0.6);;
+    margin-top: 10px;
+    /*opacity: .8;*/
 }
 
 #colorBar{
@@ -121,10 +132,7 @@ body{
     justify-content: center;
     /*width:;*/
     height: 10px;
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-top: 0px;
-    margin-bottom: 10px;
+    margin: 0 20px 0px;
 }
 
 #colorBar::before,
@@ -156,7 +164,7 @@ body{
 
 }
 .leaflet-control-graph {
-    width: 300px;
+    width: 98%;
     height: auto;
     background: rgb(255, 255, 255, 0.5);
 }
@@ -167,3 +175,56 @@ body{
 /*    margin: -5px auto 0;*/
 
 /*}*/
+#menu {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 250px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+/* Styles for the menu when it's open */
+#menu.menu-open {
+    right: 250px;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    background-color: #f4f4f4;
+}
+
+.menu-header h2 {
+    margin: 0;
+}
+
+.menu-header button {
+    background-color: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.menu-content {
+    display: none;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);;
+}
+
+/* Styles for the menu content when it's open */
+#menu.menu-open .menu-content {
+    display: block;
+}
+
+.filter-title
+{
+    font-size: 15px;
+}
