@@ -161,8 +161,7 @@ export class FieldInitializer {
 
     }
 
-    // updates the API arguments used to retrieve AERONET site data based on the selected date and
-    // time, and the updateAvg() method updates the average value for the data. The setDate() method can be used to manually set the date value.
+    // updates the API arguments used to retrieve AERONET site data based on the selected date and time
     updateApiArgs()
     {
         let currentHr;
