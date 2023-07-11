@@ -3,7 +3,6 @@ import {getDate, updateAOD, updateTime} from './components.js';
 import {initDropdown} from './init.js';
 
 // This class is responsible for initializing and updating the various fields in the user interface
-// for a web application related to AERONET data.
 export class FieldInitializer {
     constructor(siteData, allSiteData, opticalDepth, map, markerLayer) {
         this.siteData = siteData;
