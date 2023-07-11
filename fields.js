@@ -51,12 +51,13 @@ export class FieldInitializer {
 
         placeholder = 'Select'
         const siteDisc = 'AEROnet Site: ';
-        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder);
+        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true);
 
 
         const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
         const dataTypeDisc = 'Select mode';
-        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, true);
+        placeholder = 'realtime'
+        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false);
 
         // Initialize Flatpickr date/time picker.
         const calender = `<form><label for='date-input'>Select Day/Time </label>
@@ -77,9 +78,11 @@ export class FieldInitializer {
         // Add event listeners to the dropdown menus, date/time picker, and radio buttons.
         const aodDropdownElm = document.getElementById('optical-depth-dropdown');
         aodDropdownElm.addEventListener('change', event => {
+            // Update the average dropdown and API arguments
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
-            updateTime(this.date, this.time, this.previouslySetTime);
+
+            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true
         });
@@ -163,27 +166,37 @@ export class FieldInitializer {
     // time, and the updateAvg() method updates the average value for the data. The setDate() method can be used to manually set the date value.
     updateApiArgs()
     {
+        let currentHr;
+        let currentMn;
 
         if(this.time == null)
         {
-            this.api_args = `?year=${this.date[0]}&month=${this.date[1]}&day=${this.date[2]}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
+            const now = new Date();
+            currentHr = now.getHours();
+            currentMn = now.getMinutes();
+            this.time = [currentHr, currentMn]
         }
+        if (parseFloat(this.time[0]-this.hourTolerance) < 0)
+        {
+        // {this.time[0] = parseFloat(this.time[0] === 0) ? parseInt()this.time[0]+1 : undefined;
+            console.log("here");
+            let newHr = 24+(this.time[0]-this.hourTolerance)
+    //
+    //         console.log("HERRRREEEEE")
+    //         console.log(newHr)
+            let currentDate = new Date(this.date[0], this.date[1]-1, this.date[2]);
+            let previousDate = new Date(currentDate.setDate(currentDate.getDate() - 1));
+            previousDate = [previousDate.getFullYear(), previousDate.getMonth()+1, previousDate.getDate()];
+            this.api_args = (parseInt(this.time[0])===0) ?
+                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1` :
+                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
+        }
+        // console.log("MISSED")
         else
         {
-            if (parseFloat(this.time[0]-this.hourTolerance) < 0)
-            {
-                console.log("here")
-                let newHr = 24+(this.time[0]-this.hourTolerance)
-                let currentDate = new Date(this.date[0], this.date[1]-1, this.date[2]);
-                let previousDate = new Date(currentDate.setDate(currentDate.getDate() - 1));
-                previousDate = [previousDate.getFullYear(), previousDate.getMonth()+1, previousDate.getDate()];
-                this.api_args = `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
-            }
-            else
-            {
-                this.api_args = `?year=${this.date[0]}&month=${this.date[1]}&day=${this.date[2]}&hour=${this.time[0]-this.hourTolerance}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${this.time[0]}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
-            }
+            this.api_args = `?year=${this.date[0]}&month=${this.date[1]}&day=${this.date[2]}&hour=${this.time[0]-this.hourTolerance}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseInt(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
         }
+        // }
     }
     updateAvg(avg)
     {

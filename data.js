@@ -12,7 +12,6 @@ export async function getAllSites(year)
 {
     try
     {
-        console.log(year)
         const response = await fetch(`https://aeronet.gsfc.nasa.gov/Site_Lists_V3/aeronet_locations_v3_${year}_lev15.txt`, {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
@@ -37,11 +36,11 @@ export async function getSitesData(args, dataType, time, date = null)
 {
     const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
+    console.log(apiUrl.concat(args))
     try {
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
-        console.log(apiUrl.concat(args))
         const config = {
             delimiter: ',',
             newline: '\n',
@@ -53,7 +52,6 @@ export async function getSitesData(args, dataType, time, date = null)
             // If mode is ALL POINT = 20
             // validate API dates
             const data = response.split(splitCsvAt)[1]; // CSV
- 
            const objs = await Papa.parse(data, config);
 
             // validate time is correct -> fixes api returning wrong date
@@ -70,7 +68,6 @@ export async function getSitesData(args, dataType, time, date = null)
             // Only keep points with an currentHr from current UTC times
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
-            console.log(objs.data, myTime)
 
             return withinTime(1, objs.data, myTime);
         }
@@ -240,7 +237,7 @@ export function getAvg (objs, site, opticalDepth)
 
 export function withinTime (timeTolerance, dataset, time)
 {
-    console.log(timeTolerance, time)
+    console.log(time)
     // keys of data
     const siteTime = 'Time(hh:mm:ss)';
     let currentHr = null;
@@ -252,30 +249,45 @@ export function withinTime (timeTolerance, dataset, time)
     {
         currentHr = getDate().getUTCHours();
         currentMn = getDate().getUTCMinutes();
+        console.log(currentHr)
+        startHr = currentHr === 0 ? '23' : (currentHr - 1).toString().padStart(2, '0');
+
     }else {
         currentHr = time[0];
         currentMn = time[1];
+        if (parseInt(currentHr) === 0 || parseInt(currentHr) - timeTolerance < 0) {
+            let newStartHr = parseInt(currentHr) - timeTolerance;
+            startHr = 24 + newStartHr;
+            startHr = startHr.toString().padStart(2, '0');
+        } else {
+            startHr = parseInt(currentHr) - timeTolerance;
+            startHr = startHr.toString().padStart(2, '0');
+        }
+        currentMn = currentMn.toString().padStart(2, '0');
     }
-    console.log(currentHr)
-    if (parseFloat(currentHr) === 0 || parseFloat(currentHr)-timeTolerance < 0)
-    {
-        let newStartHr =  parseFloat(currentHr) - timeTolerance;
-        startHr = 24 - newStartHr;
-    }
-    else
-    {
 
-        startHr = currentHr-timeTolerance
-    }
-    console.log(startHr)
-    // console.log(startHr)
+    console.log(dataset)
     // do tolerance check whilst adding points to map for adding only points that are within an hour tolerance of the current hour
     dataset.forEach( element => {
-        (currentHr === element[siteTime].split(':')[0])  ||
-        (startHr <= element[siteTime].split(':')[0] && currentMn <= element[siteTime].split(':')[1])
-            ? withinTime.push(element) : undefined;
+        const [siteHours, siteMinutes, siteSeconds] = element[siteTime].split(':').map(Number);
+        const currentHours = parseInt(currentHr);
+        const currentMinutes = parseInt(currentMn);
+        const startHours = parseInt(startHr);
+        let isBetween;
+        if(parseInt(currentHr) !== 0) {
+            isBetween = (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
+                && (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
+                && (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes));
+        }
+        else
+        {
+            isBetween = ((currentHours === siteHours && currentMinutes > siteMinutes) || (currentHr === siteHours && currentMinutes === siteMinutes))
+                        || (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes))
+        }
+        // console.log(`start Time:${startHr}: current${currentMn}-${currentHr}:${currentMn} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
+        isBetween ? withinTime.push(element) : undefined;
     });
-
+    // console.log(withinTime)
     return withinTime;
 }
 

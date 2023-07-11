@@ -2,7 +2,7 @@ export function initMap()
 {
     // const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     const basemap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const layer = L.tileLayer(basemap, {attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors', noWrap: false, tileSize: 256 });
+    const layer = L.tileLayer(basemap, {attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a> ', noWrap: false, tileSize: 256 });
 
 
     // Define the bounds for the map
@@ -27,20 +27,20 @@ export function initDropdown(id, options, fieldDescription, placeholder, disable
 {
     let dropdownHTML = `<label for=${id}>${fieldDescription}:</label>`
     dropdownHTML += `<select id='${id}'>`;
+
     if (disabledPlaceholder)
     {
-        dropdownHTML += `<option value='' disabled selected>${`placeholder`}</option>`;
-    }
-    else
-    {
-        dropdownHTML += `<option value=''>${placeholder}</option>`;
+        dropdownHTML += `<option value='' selected>${placeholder}</option>`;
+
     }
     for (const option of options) {
-        if (option.value.toString().includes(placeholder))
+        if (option.value.toString().includes(placeholder) && !disabledPlaceholder)
         {
-            console.log()
+            dropdownHTML += `<option value='${option.value}' selected>${option.label}</option>`;
+        } else
+        {
+            dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
         }
-        dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
     }
     dropdownHTML += `</select>`;
     return dropdownHTML;

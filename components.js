@@ -1,3 +1,4 @@
+// Function to create a color scale for mapping data values to colors
 function  setColorScale()
 {
     return d3.scaleLinear()
@@ -5,6 +6,7 @@ function  setColorScale()
         .range(['blue', 'teal', 'green', 'chartreuse', 'yellow', 'orange','red']);
 }
 
+// This function takes a data value as input and returns a color based on the value
 export function setColor(value)
 {
     let color = ''
@@ -58,8 +60,8 @@ export function createColorLegend() {
         colorBar.id = 'colorBar';
         colorBar.style.backgroundImage = `linear-gradient(to right, ${colorScale(0)}, ${colorScale(1 / 6)}, ${colorScale((1 / 6) * 2)}, ${colorScale((1 / 6) * 3)}, ${colorScale((1 / 6) * 4)}, ${colorScale((1 / 6) * 5)}, ${colorScale(1)})`;
         colorBar.style.width = '300px'
-        // colorBar.style.border = '1px dashed black';
 
+        // colorBar.style.border = '1px dashed black';
         // // add vertical dashed lines to colorBar
         // const numLines = 20;
         // const lineColor = 'black';
@@ -95,10 +97,12 @@ export function createColorLegend() {
     return colorLegend;
 }
 
+// Function to update the current time label
 export function updateTime(date = null, time = null, previouslySet = false, daily = false)
 {
     const currentTimeDiv = document.getElementById('currentTime');
 
+    // if no date is provided or daily is false and the date is not previously set, use the current date and time
     if (date === null || previouslySet === false && daily === false)
     {
         const now = getDate();
@@ -130,10 +134,10 @@ export function updateTime(date = null, time = null, previouslySet = false, dail
     {
         const [hour, minute] = time;
         let previousHour;
-        if (parseFloat(hour) < 0)
+        if (parseFloat(hour) <= 0)
         {
-            previousHour = 24
-            console.log("ISSUE")
+            previousHour = 23 - parseFloat(hour)
+            // console.log("ISSUE")
         }
         else
         {
