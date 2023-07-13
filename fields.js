@@ -1,19 +1,20 @@
 import {getSitesData, latestOfSet, validateTime} from './data.js';
-import {getDate, updateAOD, updateTime} from './components.js';
+import {updateAOD, updateTime, getStartEndDateTime} from './components.js';
 import {initDropdown} from './init.js';
 
 // This class is responsible for initializing and updating the various fields in the user interface
 export class FieldInitializer {
-    constructor(siteData, allSiteData, opticalDepth, map, markerLayer) {
+    constructor(siteData, allSiteData, opticalDepth, map, markerLayer, dateTime) {
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
-        this.startDate = null;
+        this.startDate = setChartStart(true);
+        this.endDate = setChartStart(false);
+        // this.startDate = null;
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        this.date = getDate().toISOString().split('T')[0].split('-');
-        this.time = null;
+        this.dateTime = dateTime
         this.aodFieldData = [];
         this.siteFieldData = [];
         this.hourTolerance = 1;
@@ -26,7 +27,6 @@ export class FieldInitializer {
     // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
     // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
-        // Initialize dropdown for selecting optical depth.
         this.aodFieldData = Object.keys(this.siteData[0])
             .filter(element => (element.startsWith('AOD_')))
             .map(element => ({ value: element, label: element.split('_')[1] }));
@@ -81,8 +81,8 @@ export class FieldInitializer {
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
 
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+            updateTime(this.date, this.daily);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.dateTime);
             this.recentlySetInactive = true
         });
 
@@ -91,7 +91,7 @@ export class FieldInitializer {
         dataDropdownElm.addEventListener('change', async event =>  {
             this.updateAvg(event.target.value);
             this.updateApiArgs();
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
+            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.dateTime);
             console.log(event.target.value)
             if(parseInt(event.target.value) === 10)
             {
@@ -101,8 +101,8 @@ export class FieldInitializer {
             {
                 this.daily = true
             }
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+            updateTime(this.dateTime, this.daily);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.dateTime);
             this.recentlySetInactive = true;
         });
 
@@ -135,7 +135,7 @@ export class FieldInitializer {
             this.time = [hour, min];
             this.updateApiArgs();
             this.previouslySetTime = true;
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
+            updateTime(this.date, this.time, this.previouslySetTime, this.daily, this.hourTolerance);
             this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true;
@@ -161,41 +161,33 @@ export class FieldInitializer {
 
     }
 
-    // updates the API arguments used to retrieve AERONET site data based on the selected date and
-    // time, and the updateAvg() method updates the average value for the data. The setDate() method can be used to manually set the date value.
+    // updates the API arguments used to retrieve AERONET site data based on the selected date and time
     updateApiArgs()
-    {
-        let currentHr;
-        let currentMn;
+    {   if (this.avg === 10 || this.avg === null) {
+            if (this.dateTime.length === 2) {
+                [year, month, day] = this.dateTime[0];
+                [previousHr, hour, bufferHr, minute] = defaultDatethis.dateTime[1];
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 
-        if(this.time == null)
+            } else if (this.dateTime.length === 3) {
+                [previousYear, previousMonth, previousDay] = this.dateTime[0];
+                [year, month, day] = defaultDatethis.dateTime[1];
+                [previousHr, hour, bufferHr, minute] = defaultDatethis.dateTime[2];
+                this.api_args = `?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+            }
+        }else if (this.avg === 20)
         {
-            const now = new Date();
-            currentHr = now.getHours();
-            currentMn = now.getMinutes();
-            this.time = [currentHr, currentMn]
+            if (this.dateTime.length === 2) {
+                [year, month, day] = this.dateTime[0];
+                this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
+
+            } else if (this.dateTime.length === 3) {
+                [year, month, day] = defaultDatethis.dateTime[1];
+                this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
+            }
+
         }
-        if (parseFloat(this.time[0]-this.hourTolerance) < 0)
-        {
-        // {this.time[0] = parseFloat(this.time[0] === 0) ? parseInt()this.time[0]+1 : undefined;
-            console.log("here");
-            let newHr = 24+(this.time[0]-this.hourTolerance)
-    //
-    //         console.log("HERRRREEEEE")
-    //         console.log(newHr)
-            let currentDate = new Date(this.date[0], this.date[1]-1, this.date[2]);
-            let previousDate = new Date(currentDate.setDate(currentDate.getDate() - 1));
-            previousDate = [previousDate.getFullYear(), previousDate.getMonth()+1, previousDate.getDate()];
-            this.api_args = (parseInt(this.time[0])===0) ?
-                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1` :
-                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
-        }
-        // console.log("MISSED")
-        else
-        {
-            this.api_args = `?year=${this.date[0]}&month=${this.date[1]}&day=${this.date[2]}&hour=${this.time[0]-this.hourTolerance}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseInt(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
-        }
-        // }
+
     }
     updateAvg(avg)
     {

@@ -1,5 +1,5 @@
 import { getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet } from './data.js';
-import { setColor, getEndDate} from './components.js';
+import { setColor } from './components.js';
 import { drawGraph } from './chart.js';
 // import { } // set all keys to data in a config file
 
@@ -13,8 +13,8 @@ export class MarkerManager {
     this.total = 0;
     this.active = [];
     this.chart = null;
+    this.endDate = null;
     this.startDate = null;
-    this.endDate = getEndDate(this.startDate, 30);
     this.dateString = null;
     this.chartTimeLength = 30; // days to capture chart avgs
     this.currentZoom = undefined;
@@ -89,12 +89,13 @@ export class MarkerManager {
         // Add an event listener to the marker for when it is clicked
         marker.on('click', async () =>
         {
+          console.log(this.endDate, this.startDate)
           // Get the URL for the average data for the current site and time period
-          const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
+          const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, activeDepth, this.startDate, this.endDate);
+          const chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
           // Create a chart control from the chart data
           const chartControl = this.createMarkerChart(chartData)
           // Add the chart control to the markers layer
@@ -237,11 +238,11 @@ export class MarkerManager {
         marker.on('click', async () =>
         {
           // Get the URL for the average data for the current site and time period
-          const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
+          const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, active_depth, this.startDate, this.endDate);
+          const chartData = buildChartData(timedSiteData, active_depth, this.endDate, this.startDate);
 
           // Check if there is data in the chart data array
           if (chartData.length !== 0) {
@@ -304,7 +305,7 @@ export class MarkerManager {
   //   this.markersLayer.clearLayers();
   // }
 
-  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, time, startDate){
+  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, time){
     this.total = 0;
     this.active =[];
     this.currentArg = currentArgs;
@@ -312,9 +313,6 @@ export class MarkerManager {
     this.markersInactiveLayer.clearLayers();
     this.addMarker(currentSiteData, opticalDepth);
     this.addInactiveMarker(allSiteData, opticalDepth);
-    this.time = time;
-    this.startDate = startDate;
-    this.endDate = getEndDate(startDate, this.chartTimeLength);
   }
   // moveInactiveMarkersToBack() {
   //   this.markersInactiveLayer.bringToBack();
@@ -469,6 +467,8 @@ export class MarkerManager {
       onAdd: function () {
         var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
         container.innerHTML = '<div class="menu-header"><button id="menu-toggle"><p class="filter-title">Filters</p></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
+        var menuContent = container.querySelector('.menu-content');
+        menuContent.style.display = 'none';
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
           var menuContent = container.querySelector('.menu-content');

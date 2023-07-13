@@ -26,29 +26,6 @@ export function setColor(value)
     return color;
 }
 
-export function getEndDate(startDate, endLength)
-{
-    //expected date input format mm/dd/yyyy
-
-    let date = null;
-
-    if (startDate != null)
-    {
-        const newStartDate = startDate.join('/');
-        date = new Date(startDate);
-
-    }
-    else
-    {
-        date = getDate()
-    }
-
-    date.setDate(date.getDate() - endLength);
-
-    //format mm/dd/yyyy -> ['mm','dd','yyyy']
-    return date.toLocaleDateString().split('/');
-
-}
 export function createColorLegend() {
     const colorScale = setColorScale();
     const colorLegend = L.control({ position: 'topright' });
@@ -98,58 +75,42 @@ export function createColorLegend() {
 }
 
 // Function to update the current time label
-export function updateTime(date = null, time = null, previouslySet = false, daily = false)
-{
+// export function updateTime(date = null, time = null, previouslySet = false, daily = false, hourTolerance=1) {
+export function updateTime(dateTime, daily = false) {
+    let year, month, day, previousHr, hour, bufferHr, minute;
+    console.log(day)
+    if (dateTime.length === 2)
+    {
+        [year, month, day] = dateTime[0];
+        [previousHr, hour, bufferHr, minute] = dateTime[1];
+
+    }
+    else if (dateTime.length === 3)
+    {
+        [year, month, day] = dateTime[1];
+        [previousHr, hour, bufferHr, minute] = dateTime[2];
+    }
+
     const currentTimeDiv = document.getElementById('currentTime');
+    if (!daily) {
+        const dateString = new Date(Date.UTC(year, month-1, day)).toLocaleString('en-US', {
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric'
+        });
 
-    // if no date is provided or daily is false and the date is not previously set, use the current date and time
-    if (date === null || previouslySet === false && daily === false)
-    {
-        const now = getDate();
-        const year = now.getFullYear().toString();
-        const month = now.getUTCMonth().toString().padStart(2, '0');
-        const day = (now.getDate()+1).toString().padStart(2, '0');
-        const hours = now.getUTCHours().toString().padStart(2, '0');
-        const previousHour = (now.getUTCHours()-1).toString().padStart(2, '0');
-        const minutes = now.getUTCMinutes().toString().padStart(2, '0');
-        const dateString = new Date(Date.UTC(year, month, day)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
-        currentTimeDiv.innerHTML = `${dateString} (${previousHour}:${minutes}\t&mdash;${hours}:${minutes} UTC)`; // time string
-    }
-    else if (previouslySet === false && daily)
-    {
-        const now = getDate();
-        const year = now.getFullYear().toString();
-        const month = now.getUTCMonth().toString().padStart(2, '0');
-        const day = (now.getDate()+1).toString().padStart(2, '0');
-        const dateString = new Date(Date.UTC(year, month, day)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+        const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute} UTC`;
+        currentTimeDiv.innerHTML = `${dateString} (${timeString})`;
+    } else if (daily) {
+        const dateString = new Date(Date.UTC(year, month-1, day)).toLocaleString('en-US', {
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric'
+        });
         currentTimeDiv.innerHTML = `${dateString} Daily Average`;
-    }
-    else if (daily)
-    {
-        const dateString = new Date(Date.UTC(date[0], parseFloat(date[1])-1, parseFloat(date[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
-        currentTimeDiv.innerHTML = `${dateString} Daily Average`; // time string
+    } else {
 
     }
-    else
-    {
-        const [hour, minute] = time;
-        let previousHour;
-        if (parseFloat(hour) <= 0)
-        {
-            previousHour = 23 - parseFloat(hour)
-            // console.log("ISSUE")
-        }
-        else
-        {
-            previousHour = (parseFloat(hour)-1).toString().padStart(2, '0');
-        }
-        const dateString = new Date(Date.UTC(date[0], parseFloat(date[1])-1, parseFloat(date[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
-        // currentTimeDiv.innerHTML = `${dateString} ${hour}:${minute} UTC`; // time string
-        currentTimeDiv.innerHTML = `${dateString} (${previousHour}:${minute}\t&mdash;${hour}:${minute} UTC)`; // time string
-
-    }
-    currentTimeDiv.style.textAlign = 'center';
-    currentTimeDiv.style.fontSize = '14px';
 }
 
 export function updateAOD(optical_dep)
@@ -160,10 +121,76 @@ export function updateAOD(optical_dep)
     currentTimeDiv.innerHTML = `Aerosol Optical Depth (${optical_dep})`; // aod string
     currentTimeDiv.style.textAlign = 'center';
     currentTimeDiv.style.fontSize = '14px';
-
 }
 
-export function getDate ()
+
+export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
 {
-    return new Date();
+    let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
+    if(!dateTime)
+    {
+        const now = new Date();
+        const yesterday = new Date(Date.parse(now.toISOString()))
+        year = now.getUTCFullYear().toString().padStart(4, '0');
+        month = (now.getUTCMonth() + 1).toString().padStart(2, '0');
+        day = (now.getUTCDate()).toString().padStart(2, '0');
+        hour = now.getUTCHours().toString().padStart(2, '0');
+        minute = now.getUTCMinutes().toString().padStart(2, '0');
+        previousYear = yesterday.getUTCFullYear().toString().padStart(4, '0');
+        previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
+        previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
+    }
+    else if (dateTime)
+    {
+        const setTime = new Date(Date.parse(dateTime))
+        const yesterday = new Date(Date.parse(dateTime))
+        yesterday.setDate(setTime.getDate() - 1)
+        year = setTime.getUTCFullYear().toString().padStart(4, '0');
+        month = (setTime.getUTCMonth() + 1).toString().padStart(2, '0');
+        day = (setTime.getUTCDate()).toString().padStart(2, '0');
+        hour = setTime.getUTCHours().toString().padStart(2, '0');
+        minute = setTime.getUTCMinutes().toString().padStart(2, '0');
+        previousYear = yesterday.getUTCFullYear().toString().padStart(4, '0');
+        previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
+        previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
+    }
+    previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0')
+    bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0')
+    if (hour==='00')
+    {
+        return [
+            [
+                previousYear,
+                previousMonth,
+                previousDay,
+            ],
+            [
+                year,
+                month,
+                day,
+            ],
+            [
+                previousHr,
+                hour,
+                bufferHr,
+                minute,
+            ],
+        ];
+    }
+    else
+    {
+        return [
+            [
+                year,
+                month,
+                day,
+            ],
+            [
+                previousHr,
+                hour,
+                bufferHr,
+                minute,
+            ],
+        ];
+    }
 }

@@ -1,7 +1,7 @@
-import {getDate} from './components.js';
+// import {getDate} from './components.js';
 
 // Latest data flow
-const date = getDate().toISOString().split('T')[0].split('-');
+// const date = getDate().toISOString().split('T')[0].split('-');
 const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
 // const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
 
@@ -32,9 +32,9 @@ export async function getAllSites(year)
     }
 }
 
-export async function getSitesData(args, dataType, time, date = null)
+export async function getSitesData(args, dataType, date = null)
 {
-    const myTime = time
+    console.log(date)
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     console.log(apiUrl.concat(args))
     try {
@@ -53,7 +53,6 @@ export async function getSitesData(args, dataType, time, date = null)
             // validate API dates
             const data = response.split(splitCsvAt)[1]; // CSV
            const objs = await Papa.parse(data, config);
-
             // validate time is correct -> fixes api returning wrong date
             if(date !== null)
             {  
@@ -69,10 +68,8 @@ export async function getSitesData(args, dataType, time, date = null)
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
 
-            return withinTime(1, objs.data, myTime);
+            return withinTime(objs.data, date);
         }
-        // console.log(objs.data)
-        // return objs.data
     } catch (error) {
         console.error(error);
         throw new Error('Failed to get data');
@@ -99,7 +96,8 @@ function createUrl(site)
 
 export async function getAvgUrl(site, startDate, endDate)
 {
-
+    console.log(startDate)
+    console.log(endDate)
     // input dates should be mm/dd/yyyy
     if (startDate[2].length > 2) // corrects format when data is changed
     {
@@ -235,59 +233,45 @@ export function getAvg (objs, site, opticalDepth)
     return (aodAvg/totalAvg).toPrecision(4);
 }
 
-export function withinTime (timeTolerance, dataset, time)
+export function withinTime (dataset, defaultDate)
 {
-    console.log(time)
-    // keys of data
+    // sitetime Key
     const siteTime = 'Time(hh:mm:ss)';
-    let currentHr = null;
 
-    let currentMn = null;
-    let withinTime = [];
-    let startHr; // time to get in relation to current time (startTime - currentTime)
-    if (time === null)
+    let previousHr, hour, bufferHr, minute;
+    if (defaultDate.length === 2)
     {
-        currentHr = getDate().getUTCHours();
-        currentMn = getDate().getUTCMinutes();
-        console.log(currentHr)
-        startHr = currentHr === 0 ? '23' : (currentHr - 1).toString().padStart(2, '0');
+        [previousHr, hour, bufferHr, minute] = defaultDate[1];
 
-    }else {
-        currentHr = time[0];
-        currentMn = time[1];
-        if (parseInt(currentHr) === 0 || parseInt(currentHr) - timeTolerance < 0) {
-            let newStartHr = parseInt(currentHr) - timeTolerance;
-            startHr = 24 + newStartHr;
-            startHr = startHr.toString().padStart(2, '0');
-        } else {
-            startHr = parseInt(currentHr) - timeTolerance;
-            startHr = startHr.toString().padStart(2, '0');
-        }
-        currentMn = currentMn.toString().padStart(2, '0');
+    }
+    else if (defaultDate.length === 3)
+    {
+        [previousHr, hour, bufferHr, minute] = defaultDate[2];
     }
 
-    console.log(dataset)
+
+    let withinTime = [];
+
     // do tolerance check whilst adding points to map for adding only points that are within an hour tolerance of the current hour
     dataset.forEach( element => {
         const [siteHours, siteMinutes, siteSeconds] = element[siteTime].split(':').map(Number);
-        const currentHours = parseInt(currentHr);
-        const currentMinutes = parseInt(currentMn);
-        const startHours = parseInt(startHr);
         let isBetween;
-        if(parseInt(currentHr) !== 0) {
-            isBetween = (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
-                && (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
-                && (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes));
+        if(parseInt(hour) !== 0) {
+            isBetween = (hour > siteHours || (hour === siteHours && minute >= siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                && (hour > siteHours || (hour === siteHours && minute >= siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                && (previousHr < siteHours || (previousHr === siteHours && minute <= siteMinutes) || (previousHr === siteHours && minute === siteMinutes));
         }
         else
         {
-            isBetween = ((currentHours === siteHours && currentMinutes > siteMinutes) || (currentHr === siteHours && currentMinutes === siteMinutes))
-                        || (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes))
+            isBetween = ((hour === siteHours && minute > siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                        || (previousHr < siteHours || (previousHr === siteHours && minute <= siteMinutes) || (previousHr === siteHours && minute === siteMinutes))
         }
-        // console.log(`start Time:${startHr}: current${currentMn}-${currentHr}:${currentMn} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
+        console.log(`start Time:${previousHr}: current${minute}-${hour}:${minute} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
+        console.log('04:')
         isBetween ? withinTime.push(element) : undefined;
     });
     // console.log(withinTime)
+    console.log(withinTime)
     return withinTime;
 }
 
