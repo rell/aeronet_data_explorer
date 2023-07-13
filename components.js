@@ -78,7 +78,8 @@ export function createColorLegend() {
 // export function updateTime(date = null, time = null, previouslySet = false, daily = false, hourTolerance=1) {
 export function updateTime(dateTime, daily = false) {
     let year, month, day, previousHr, hour, bufferHr, minute;
-    console.log(day)
+    let dayValidation,xz,xy;
+
     if (dateTime.length === 2)
     {
         [year, month, day] = dateTime[0];
@@ -93,11 +94,13 @@ export function updateTime(dateTime, daily = false) {
 
     const currentTimeDiv = document.getElementById('currentTime');
     if (!daily) {
-        const dateString = new Date(Date.UTC(year, month-1, day)).toLocaleString('en-US', {
+        console.log(year,month-1, day)
+        const dateString = new Date(Date.UTC(year, month-1, parseInt(day)+1)).toLocaleString('en-US', {
             month: 'long',
             day: '2-digit',
             year: 'numeric'
         });
+        console.log(dateString)
 
         const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute} UTC`;
         currentTimeDiv.innerHTML = `${dateString} (${timeString})`;
@@ -154,8 +157,10 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
         previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
         previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
     }
-    previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0')
-    bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0')
+
+    previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0');
+    bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0');
+
     if (hour==='00')
     {
         return [

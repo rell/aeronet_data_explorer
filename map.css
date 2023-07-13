@@ -230,3 +230,7 @@ svg.leaflet-attribution-flag
     margin: 1px;
     font-size: 15px;
 }
+div#currentTime {
+    text-align: CENTER;
+    FONT-SIZE: SMALL;
+}

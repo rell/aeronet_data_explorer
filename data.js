@@ -4,7 +4,6 @@
 // const date = getDate().toISOString().split('T')[0].split('-');
 const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
 // const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
-
 // const api_args = `?year=2023&month=6&day=11&AOD15=1&AVG=10&if_no_html=1`
 
 
@@ -235,18 +234,18 @@ export function getAvg (objs, site, opticalDepth)
 
 export function withinTime (dataset, defaultDate)
 {
-    // sitetime Key
+    // Site time Key
     const siteTime = 'Time(hh:mm:ss)';
 
     let previousHr, hour, bufferHr, minute;
     if (defaultDate.length === 2)
     {
-        [previousHr, hour, bufferHr, minute] = defaultDate[1];
+        [previousHr, hour, bufferHr, minute] = defaultDate[1].map(Number);
 
     }
     else if (defaultDate.length === 3)
     {
-        [previousHr, hour, bufferHr, minute] = defaultDate[2];
+        [previousHr, hour, bufferHr, minute] = defaultDate[2].map(Number);
     }
 
 
@@ -266,11 +265,9 @@ export function withinTime (dataset, defaultDate)
             isBetween = ((hour === siteHours && minute > siteMinutes) || (hour === siteHours && minute === siteMinutes))
                         || (previousHr < siteHours || (previousHr === siteHours && minute <= siteMinutes) || (previousHr === siteHours && minute === siteMinutes))
         }
-        console.log(`start Time:${previousHr}: current${minute}-${hour}:${minute} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
-        console.log('04:')
+        // console.log(`start Time:${previousHr}: current${minute}-${hour}:${minute} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
         isBetween ? withinTime.push(element) : undefined;
     });
-    // console.log(withinTime)
     console.log(withinTime)
     return withinTime;
 }

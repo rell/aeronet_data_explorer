@@ -8,13 +8,17 @@ export class FieldInitializer {
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
-        this.startDate = setChartStart(true);
-        this.endDate = setChartStart(false);
         // this.startDate = null;
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        this.dateTime = dateTime
+        this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
+        this.dateTime = dateTime;
+
+        // TODO: SET DATE FOR CHART DATA TO UTILIZE
+        this.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
+        this.startDate = this.setChartStart(this.dateTime)
+
         this.aodFieldData = [];
         this.siteFieldData = [];
         this.hourTolerance = 1;
@@ -27,6 +31,7 @@ export class FieldInitializer {
     // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
     // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
+
         this.aodFieldData = Object.keys(this.siteData[0])
             .filter(element => (element.startsWith('AOD_')))
             .map(element => ({ value: element, label: element.split('_')[1] }));
@@ -106,6 +111,7 @@ export class FieldInitializer {
             this.recentlySetInactive = true;
         });
 
+
         // site list field
         const sitedropdownElm = document.getElementById('site-drop-down');
         sitedropdownElm.addEventListener('change', event => {
@@ -128,12 +134,12 @@ export class FieldInitializer {
 
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
-            let dateValue = document.getElementById('date-input').value;
-            const date = dateValue.split('T')[0].split('-');
-            this.date = [date[0],date[1],date[2]];
-            let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':');
-            this.time = [hour, min];
-            this.updateApiArgs();
+            this.dateTime = document.getElementById('date-input').value;
+            // const date = dateValue.split('T')[0].split('-');
+            // this.date = [date[0],date[1],date[2]];
+            // let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':');
+            // this.time = [hour, min];
+            this.updateApiArgs(th);
             this.previouslySetTime = true;
             updateTime(this.date, this.time, this.previouslySetTime, this.daily, this.hourTolerance);
             this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
@@ -159,6 +165,31 @@ export class FieldInitializer {
             }
         });
 
+    }
+    setChartStart() {
+        let date;
+        let startYear,startMonth,startDay,year,month,day;
+        if (this.dateTime.length === 3)
+        {
+            [year, month, day] = this.dateTime[1].map(Number);
+            date = new Date(year, month-1, day);
+            date.setDate(date.getDate()-30);
+            startYear = date.getUTCFullYear();
+            startMonth = date.getUTCMonth();
+            startDay = date.getUTCDay();
+
+        }
+        if (this.dateTime.length === 2)
+        {
+            [year, month, day] = this.dateTime[0].map(Number);
+            console.log(year, month, day);
+            date = new Date(year, month-1, day);
+            date.setDate(date.getDate()-30);
+            startYear = date.getUTCFullYear();
+            startMonth = date.getUTCMonth();
+            startDay = date.getUTCDay();
+        }
+        return [startYear, startMonth, startDay];
     }
 
     // updates the API arguments used to retrieve AERONET site data based on the selected date and time
