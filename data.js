@@ -31,7 +31,7 @@ export async function getAllSites(year)
     }
 }
 
-export async function getSitesData(args, dataType, date = null)
+export async function getSitesData(args, dataType,date)
 {
     console.log(date)
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
@@ -53,15 +53,12 @@ export async function getSitesData(args, dataType, date = null)
             const data = response.split(splitCsvAt)[1]; // CSV
            const objs = await Papa.parse(data, config);
             // validate time is correct -> fixes api returning wrong date
-            if(date !== null)
-            {  
-                return validateTime(objs.data, date);
-            }
-            return objs.data;
+
+            return validateTime(objs.data, date);
+            // return objs.data;
         }
         if (dataType.toString() === '10') // all points
         {
-
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
             const data = response.split(splitCsvAt)[1]; // CSV
@@ -93,20 +90,24 @@ function createUrl(site)
 }
 
 
-export async function getAvgUrl(site, startDate, endDate)
+export async function getAvgUrl(site, endDate, startDate)
 {
-    console.log(startDate)
-    console.log(endDate)
+    console.log(startDate, endDate)
+    // console.log(startDate)
+    // console.log(endDate)
     // input dates should be mm/dd/yyyy
-    if (startDate[2].length > 2) // corrects format when data is changed
-    {
-        return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${startDate[2]}&month=${startDate[0]}&day=${startDate[1]}&year1=${endDate[2]}&month1=${endDate[0]}&day1=${endDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-    }
-    else
-    {
-        return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[2]}&month=${endDate[0]}&day=${endDate[1]}&year1=${startDate[0]}&month1=${startDate[1]}&day1=${startDate[2]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-        // url = `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[0]}&month=${endDate[1]}&day=${endDate[2]}&year1=${startDate[2]}&month1=${startDate[0]}&day1=${startDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-    }
+
+    return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${startDate[0]}&month=${startDate[1]}&day=${startDate[2]}&year1=${endDate[0]}&month1=${endDate[1]}&day1=${endDate[2]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
+
+    // if (startDate[2].length > 2) // corrects format when data is changed
+    // {
+    //     return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${startDate[2]}&month=${startDate[0]}&day=${startDate[1]}&year1=${endDate[2]}&month1=${endDate[0]}&day1=${endDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
+    // }
+    // else
+    // {
+    //     return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[2]}&month=${endDate[0]}&day=${endDate[1]}&year1=${startDate[0]}&month1=${startDate[1]}&day1=${startDate[2]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
+    //     // url = `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[0]}&month=${endDate[1]}&day=${endDate[2]}&year1=${startDate[2]}&month1=${startDate[0]}&day1=${startDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
+    // }
 }
 
 // export async function getAllDataUrl(site, timestart, timeend)
@@ -141,49 +142,59 @@ export function validateTime(data, date)
 }
 
 
-export function buildChartData(data, activeDepth, startDate, endDate)
+export function buildChartData(data, activeDepth, endDate, startDate)
 {
-    if (startDate.join() === endDate.join())
-    {
-        const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
-                return {
-                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
-                };
-            }
-        });
-        return chartData.filter((obj) => obj !== undefined);
-    }
-    else
-    {
-        const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
-                return {
-                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
-                };
-            }
-        });
+    console.log(endDate, startDate)
+    // if (startDate.join() === endDate.join())
+    // {
+    //     const chartData = data.map(obj => {
+    //         if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
+    //             return {
+    //                 x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
+    //             };
+    //         }
+    //     });
+    //     return chartData.filter((obj) => obj !== undefined);
+    // }
 
-        const cleanedData =  chartData.filter((obj) => obj !== undefined);
-        endDate = buildDates(endDate)
-        let [endYear, endMonth, endDay] = endDate;
-        let [startYear, startMonth, startDay] = startDate;
-        return  cleanedData.filter((obj) => {
-            let [month, day, year] = obj.x.split(':');
-            let dataTime = [month, day, year]
-            dataTime = buildDates(dataTime);
-            day = dataTime[1];
-            month = dataTime[2];
-            year = dataTime[0];
-            const timestamp = new Date(year, month, day).getTime();
-            const max = new Date(startYear, startMonth, startDay).getTime();
-            const min = new Date(endYear, endMonth, endDay).getTime();
+    console.log(data)
+    const chartData = data.map(obj => {
+        if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
+            return {
+                x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
+            };
+        }
+    });
+    console.log(chartData)
+    const cleanedData =  chartData.filter((obj) => obj !== undefined);
+    // endDate = buildDates(endDate)
+    let [endYear, endMonth, endDay] = endDate.map(Number);
+    console.log(endDate)
+    let [startYear, startMonth, startDay] = startDate.map(Number);
+    console.log(startDate)
+    return  cleanedData.filter((obj) => {
+        let [day,month, year] = obj.x.split(':').map(Number);
+        // let dataTime = [month, day, year]
+        // dataTime = buildDates(dataTime);
+        // const timestamp = new Date(year, month - 1, day).getTime();
+        // const min = new Date(startYear, startMonth - 1, startDay).getTime();
+        // const max = new Date(endYear, endMonth, endDay).getTime();
+        console.log(month,day,year)
+        const timestamp = new Date(year, month - 1, day);
+        const min = new Date(startYear, startMonth - 1, startDay);
+        const max= new Date(endYear, endMonth - 1, endDay);
 
-            // if  min <= timestamp <= max -> data is within range
-            return timestamp >= min && timestamp <= max;
+        // if  min <= timestamp <= max -> data is within range
+        console.log(min.toUTCString())
+        console.log(timestamp.toUTCString())
+        console.log(max.toUTCString())
 
-        })
-    }
+        console.log(`${timestamp} >= ${min} && ${timestamp} <= ${max}`)
+        console.log(timestamp >= min && timestamp <= max)
+        return timestamp >= min && timestamp <= max;
+
+    })
+
 }
 
 

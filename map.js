@@ -9,7 +9,6 @@ import { FieldInitializer } from './fields.js'
 // const defaultDate = getStartEndDateTime('2023-07-13T00:34:56.789Z')
 // const defaultDate = getStartEndDateTime('2023-07-13T12:34:56.789Z')
 const defaultDate = getStartEndDateTime()
-console.log(defaultDate)
 
 // // create map obj
 const map = initMap();
@@ -18,16 +17,16 @@ let args;
 let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
 if (defaultDate.length === 2)
 {
-    [year, month, day] = defaultDate[0];
-    [previousHr, hour, bufferHr, minute] = defaultDate[1];
+    [year, month, day] = defaultDate[0].map(Number);
+    [previousHr, hour, bufferHr, minute] = defaultDate[1].map(Number);
     args=`?year=${year}&month=${month}&day=${day}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
-
+    // args=`year=2022&month=6&day=1&year2=2022&month2=6&day2=1&AOD15=1&hour=0&hour2=2&AVG=10`
 }
 else if (defaultDate.length === 3)
 {
     [previousYear, previousMonth, previousDay] = defaultDate[0];
-    [year, month, day] = defaultDate[1];
-    [previousHr, hour, bufferHr, minute] = defaultDate[2];
+    [year, month, day] = defaultDate[1].map(Number);
+    [previousHr, hour, bufferHr, minute] = defaultDate[2].map(Number);
     args=`?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 }
 
@@ -48,8 +47,8 @@ updateTime(defaultDate);
 // create marker obj
 const markerLayer = new MarkerManager(map, args);
 // adding layers
-// markerLayer.addMarker(latestOfSet(site_data), optical_depth);
-// markerLayer.addInactiveMarker(all_site_data, optical_depth);
+markerLayer.addMarker(latestOfSet(site_data), optical_depth);
+markerLayer.addInactiveMarker(all_site_data, optical_depth);
 const initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer, defaultDate);
 //
 // set center and default zoom

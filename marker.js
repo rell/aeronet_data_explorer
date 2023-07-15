@@ -305,10 +305,11 @@ export class MarkerManager {
   //   this.markersLayer.clearLayers();
   // }
 
-  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, time){
+  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, ){
     this.total = 0;
     this.active =[];
     this.currentArg = currentArgs;
+    console.log("CLEARING")
     this.markersLayer.clearLayers();
     this.markersInactiveLayer.clearLayers();
     this.addMarker(currentSiteData, opticalDepth);
@@ -492,6 +493,7 @@ export class MarkerManager {
 
   updateDateString(date)
   {
+    console.log(date)
 
     // before custom date is on
     // date format = mm/dd/yyyy

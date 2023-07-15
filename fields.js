@@ -12,12 +12,12 @@ export class FieldInitializer {
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
+        // this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
         this.dateTime = dateTime;
 
         // TODO: SET DATE FOR CHART DATA TO UTILIZE
-        this.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
-        this.startDate = this.setChartStart(this.dateTime)
+        this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
+        this.markerLayer.startDate = this.setChartStart(this.dateTime)
 
         this.aodFieldData = [];
         this.siteFieldData = [];
@@ -134,17 +134,16 @@ export class FieldInitializer {
 
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
-            this.dateTime = document.getElementById('date-input').value;
-            // const date = dateValue.split('T')[0].split('-');
-            // this.date = [date[0],date[1],date[2]];
-            // let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':');
+            const dateString = document.getElementById('date-input').value;
+            this.dateTime = getStartEndDateTime(dateString)
             // this.time = [hour, min];
-            this.updateApiArgs(th);
+            this.updateApiArgs();
             this.previouslySetTime = true;
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily, this.hourTolerance);
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
+            updateTime(this.dateTime, this.daily);
+            this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true;
+            console.log(this.dateTime)
         });
 
         const toggleInactiveOff = document.getElementById('hide-inactive');
@@ -172,48 +171,51 @@ export class FieldInitializer {
         if (this.dateTime.length === 3)
         {
             [year, month, day] = this.dateTime[1].map(Number);
-            date = new Date(year, month-1, day);
+            date = new Date(year, month - 1, day);
             date.setDate(date.getDate()-30);
             startYear = date.getUTCFullYear();
             startMonth = date.getUTCMonth();
-            startDay = date.getUTCDay();
-
+            startDay = date.getUTCDate();
         }
-        if (this.dateTime.length === 2)
+        else if (this.dateTime.length === 2)
         {
             [year, month, day] = this.dateTime[0].map(Number);
-            console.log(year, month, day);
-            date = new Date(year, month-1, day);
+            date = new Date(year, month - 1, day);
             date.setDate(date.getDate()-30);
             startYear = date.getUTCFullYear();
-            startMonth = date.getUTCMonth();
-            startDay = date.getUTCDay();
+            startMonth = date.getUTCMonth()+1;
+            startDay = date.getUTCDate();
         }
-        return [startYear, startMonth, startDay];
+        // console.log(startYear, startMonth, startDay)
+        return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
     }
 
-    // updates the API arguments used to retrieve AERONET site data based on the selected date and time
+    // updates the API arguments used to retrieve AERO-NET site data based on the selected date and time
     updateApiArgs()
-    {   if (this.avg === 10 || this.avg === null) {
+    {
+        let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
+
+
+        if (this.avg === 10 || this.avg === null) {
             if (this.dateTime.length === 2) {
-                [year, month, day] = this.dateTime[0];
-                [previousHr, hour, bufferHr, minute] = defaultDatethis.dateTime[1];
+                [year, month, day] = this.dateTime[0].map(Number);
+                [previousHr, hour, bufferHr, minute] = this.dateTime[1].map(Number);
                 this.api_args = `?year=${year}&month=${month}&day=${day}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 
             } else if (this.dateTime.length === 3) {
-                [previousYear, previousMonth, previousDay] = this.dateTime[0];
-                [year, month, day] = defaultDatethis.dateTime[1];
-                [previousHr, hour, bufferHr, minute] = defaultDatethis.dateTime[2];
+                [previousYear, previousMonth, previousDay] = this.dateTime[0].map(Number);
+                [year, month, day] = this.dateTime[1].map(Number);
+                [previousHr, hour, bufferHr, minute] = this.dateTime[2].map(Number);
                 this.api_args = `?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
             }
         }else if (this.avg === 20)
         {
             if (this.dateTime.length === 2) {
-                [year, month, day] = this.dateTime[0];
+                [year, month, day] = this.dateTime[0].map(Number);
                 this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
 
             } else if (this.dateTime.length === 3) {
-                [year, month, day] = defaultDatethis.dateTime[1];
+                [year, month, day] = this.dateTime[1].map(Number);
                 this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
             }
 
