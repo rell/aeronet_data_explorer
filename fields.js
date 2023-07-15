@@ -8,6 +8,7 @@ export class FieldInitializer {
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
+        this.radiusIncreased = false
         // this.startDate = null;
         this.avg = 10;
         this.map = map;
@@ -51,7 +52,7 @@ export class FieldInitializer {
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
         const aodDisc = 'Select wavelength for AOD';
-        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder);
+        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false);
 
         placeholder = 'Select'
         const siteDisc = 'AEROnet Site: ';
@@ -94,9 +95,11 @@ export class FieldInitializer {
         // realtime and daily field
         const dataDropdownElm = document.getElementById('data-type-dropdown');
         dataDropdownElm.addEventListener('change', async event =>  {
+            // console.log(event.target.value)
             this.updateAvg(event.target.value);
             this.updateApiArgs();
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.dateTime);
+            console.log(this.api_args)
+            this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             console.log(event.target.value)
             if(parseInt(event.target.value) === 10)
             {
@@ -106,9 +109,9 @@ export class FieldInitializer {
             {
                 this.daily = true
             }
-            updateTime(this.dateTime, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.dateTime);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             this.recentlySetInactive = true;
+            updateTime(this.dateTime, this.daily);
         });
 
 
@@ -117,6 +120,10 @@ export class FieldInitializer {
         sitedropdownElm.addEventListener('change', event => {
             const selectedValue = event.target.value;
             const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
+            if (!this.radiusIncreased){
+                this.radiusIncreased = true
+                this.markerLayer.changeMarkerRadius(15)
+            }
             this.map.setView([result['Latitude(decimal_degrees)'],result['Longitude(decimal_degrees)']],15);
         });
 
@@ -139,11 +146,18 @@ export class FieldInitializer {
             // this.time = [hour, min];
             this.updateApiArgs();
             this.previouslySetTime = true;
-            updateTime(this.dateTime, this.daily);
+            this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
+            this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
             this.recentlySetInactive = true;
-            console.log(this.dateTime)
+            if (!this.radiusIncreased && this.markerLayer.currentZoom >= 5)
+            {
+                console.log("DID THIS")
+                this.radiusIncreased = true
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom*1.4+this.markerLayer.defaultRadius)
+            }
+            updateTime(this.dateTime, this.daily);
         });
 
         const toggleInactiveOff = document.getElementById('hide-inactive');
@@ -196,27 +210,27 @@ export class FieldInitializer {
         let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
 
 
-        if (this.avg === 10 || this.avg === null) {
+        if (parseFloat(this.avg) === 10 || this.avg === null) {
             if (this.dateTime.length === 2) {
                 [year, month, day] = this.dateTime[0].map(Number);
                 [previousHr, hour, bufferHr, minute] = this.dateTime[1].map(Number);
-                this.api_args = `?year=${year}&month=${month}&day=${day}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 
             } else if (this.dateTime.length === 3) {
                 [previousYear, previousMonth, previousDay] = this.dateTime[0].map(Number);
                 [year, month, day] = this.dateTime[1].map(Number);
                 [previousHr, hour, bufferHr, minute] = this.dateTime[2].map(Number);
-                this.api_args = `?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+                this.api_args = `?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
             }
-        }else if (this.avg === 20)
+        }else if (parseFloat(this.avg) === 20)
         {
             if (this.dateTime.length === 2) {
                 [year, month, day] = this.dateTime[0].map(Number);
-                this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&AOD15=1&AVG=20&if_no_html=1`
 
             } else if (this.dateTime.length === 3) {
                 [year, month, day] = this.dateTime[1].map(Number);
-                this.api_args = `?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1`
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&AOD15=1&AVG=20&if_no_html=1`
             }
 
         }

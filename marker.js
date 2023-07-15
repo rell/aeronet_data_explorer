@@ -4,7 +4,8 @@ import { drawGraph } from './chart.js';
 // import { } // set all keys to data in a config file
 
 export class MarkerManager {
-  constructor(map, args) {
+  constructor(map, args, fieldsClass) {
+    this.fieldsClass = fieldsClass
     this.defaultRadius = 4;
     this.map = map;
     this.currentArg = args;
@@ -370,8 +371,9 @@ export class MarkerManager {
       // console.log(this.currentZoom, this.previousZoom)
       if (this.currentZoom < this.previousZoom) {
         this.previousZoom = this.currentZoom;
-        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
+        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
         // console.log("ZOOMING OUT")
+        this.fieldsClass.radiusIncreased = false
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -383,7 +385,7 @@ export class MarkerManager {
         });
         if (this.currentZoom >= 5)
         {
-          this.changeMarkerRadius(-2)
+          this.changeMarkerRadius(-4)
         }
         else {
           this.changeMarkerRadius(null)
@@ -391,7 +393,8 @@ export class MarkerManager {
       } else {
         this.previousZoom = this.currentZoom;
         // console.log("Zooming IN")
-        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
+        this.fieldsClass.radiusIncreased = false
+        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -403,7 +406,7 @@ export class MarkerManager {
         });
         if (this.currentZoom >= 5)
         {
-          this.changeMarkerRadius(+2)
+          this.changeMarkerRadius(+4)
         }
         else
         {
@@ -411,6 +414,11 @@ export class MarkerManager {
         }
       }
     });
+  }
+
+  setDate()
+  {
+
   }
 
   createMarkerChart(chartData)
@@ -493,8 +501,6 @@ export class MarkerManager {
 
   updateDateString(date)
   {
-    console.log(date)
-
     // before custom date is on
     // date format = mm/dd/yyyy
     // setting date

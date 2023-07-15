@@ -161,7 +161,7 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
     previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0');
     bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0');
 
-    if (hour==='00')
+    if (hour==='00' || bufferHr < hour)
     {
         return [
             [

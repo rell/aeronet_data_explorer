@@ -19,7 +19,7 @@ if (defaultDate.length === 2)
 {
     [year, month, day] = defaultDate[0].map(Number);
     [previousHr, hour, bufferHr, minute] = defaultDate[1].map(Number);
-    args=`?year=${year}&month=${month}&day=${day}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+    args=`?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
     // args=`year=2022&month=6&day=1&year2=2022&month2=6&day2=1&AOD15=1&hour=0&hour2=2&AVG=10`
 }
 else if (defaultDate.length === 3)
@@ -27,7 +27,7 @@ else if (defaultDate.length === 3)
     [previousYear, previousMonth, previousDay] = defaultDate[0];
     [year, month, day] = defaultDate[1].map(Number);
     [previousHr, hour, bufferHr, minute] = defaultDate[2].map(Number);
-    args=`?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year1=${year}&month1=${month}&day1=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+    args=`?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 }
 
 
@@ -45,12 +45,12 @@ updateAOD(optical_depth);
 updateTime(defaultDate);
 
 // create marker obj
-const markerLayer = new MarkerManager(map, args);
 // adding layers
+const markerLayer = new MarkerManager(map, args);
 markerLayer.addMarker(latestOfSet(site_data), optical_depth);
 markerLayer.addInactiveMarker(all_site_data, optical_depth);
 const initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer, defaultDate);
-//
+markerLayer.fieldsClass = initFields
 // set center and default zoom
 
 map.setView([0,0],1);
