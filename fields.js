@@ -200,11 +200,21 @@ export class FieldInitializer {
             }
         });
 
-    }
+ 
     setChartStart() {
         let date;
         let startYear,startMonth,startDay,year,month,day;
         if (this.dateTime.length === 3)
+    }
+
+    // updates the API arguments used to retrieve AERONET site data based on the selected date and time
+    updateApiArgs()
+    {
+        let currentHr;
+        let currentMn;
+
+        if(this.time == null)
+
         {
             [year, month, day] = this.dateTime[1].map(Number);
             date = new Date(year, month - 1, day);
