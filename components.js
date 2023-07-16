@@ -28,7 +28,7 @@ export function setColor(value)
 
 export function createColorLegend() {
     const colorScale = setColorScale();
-    const colorLegend = L.control({ position: 'topright' });
+    const colorLegend = L.control({ position: 'bottomleft' });
     colorLegend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'legend');
 
@@ -79,33 +79,30 @@ export function createColorLegend() {
 export function updateTime(dateTime, daily = false) {
     let year, month, day, previousHr, hour, bufferHr, minute;
     let dayValidation,xz,xy;
-
     if (dateTime.length === 2)
     {
-        [year, month, day] = dateTime[0];
+        [year, month, day] = dateTime[0].map(Number);
         [previousHr, hour, bufferHr, minute] = dateTime[1];
 
     }
     else if (dateTime.length === 3)
     {
-        [year, month, day] = dateTime[1];
-        [previousHr, hour, bufferHr, minute] = dateTime[2];
+        [year, month, day] = dateTime[1].map(Number);
+        [previousHr, hour, bufferHr, minute] = dateTime[2]
     }
 
     const currentTimeDiv = document.getElementById('currentTime');
     if (!daily) {
-        console.log(year,month-1, day)
         const dateString = new Date(Date.UTC(year, month-1, parseInt(day)+1)).toLocaleString('en-US', {
             month: 'long',
             day: '2-digit',
             year: 'numeric'
         });
-        console.log(dateString)
 
         const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute} UTC`;
         currentTimeDiv.innerHTML = `${dateString} (${timeString})`;
     } else if (daily) {
-        const dateString = new Date(Date.UTC(year, month-1, day)).toLocaleString('en-US', {
+        const dateString = new Date(Date.UTC(year, month-1, day+1)).toLocaleString('en-US', {
             month: 'long',
             day: '2-digit',
             year: 'numeric'

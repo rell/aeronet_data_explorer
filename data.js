@@ -33,9 +33,7 @@ export async function getAllSites(year)
 
 export async function getSitesData(args, dataType, date)
 {
-    console.log(date)
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
-    console.log(apiUrl.concat(args))
     try {
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
@@ -106,13 +104,6 @@ export async function getAvgUrl(site, endDate, startDate)
 //     return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1&site=${site}`
 // }
 
-function buildDates(date)
-{
-    date = date.map((element) => element.padStart(2, '0'));
-    let [month, day, year] = date
-    return [year, month, day]
-}
-
 export function validateTime(data, date)
 {
     const site_date = 'Date(dd:mm:yyyy)';
@@ -120,17 +111,17 @@ export function validateTime(data, date)
 
         let year, month, day;
         // Date(dd:mm:yyyy)
-        let [objDay, objMonth, objYear] = obj[site_date].split(':');
+        let [objDay, objMonth, objYear] = obj[site_date].split(':').map(Number);
         if (date.length === 2) {
             [year, month, day] = date[0].map(Number);
         }
         else if (date.length === 3)
         {
-            [year, month, day] = date[0].map(Number);
+            [year, month, day] = date[1].map(Number);
         }
+
         const timestamp = new Date(objYear, objMonth, objDay).getTime();
         const setDate = new Date(year, month, day).getTime();
-        // console.log(timestamp === setDate)
         return timestamp === setDate;
     });
 }
@@ -236,7 +227,6 @@ export function withinTime (dataset, defaultDate)
         // console.log(`start Time:${previousHr}: current${minute}-${hour}:${minute} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
         isBetween ? withinTime.push(element) : undefined;
     });
-    console.log(withinTime)
     return withinTime;
 }
 

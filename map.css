@@ -1,18 +1,25 @@
 html,
-body{
-    height: 100%;
-    margin: 0;
-}
+body,
 #map {
-    display: inline-flex;
-    width: 100%; /* Set map width to 70% */
-    float: left;
-    height: 500px;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
 }
+
+.row {
+    height: 100%;
+}
+
+.popup {
+    height: 100%;
+}
+
 svg.leaflet-attribution-flag
 {
   display: none !important;
 }
+
 
 #form {
     display: flex;
@@ -45,12 +52,12 @@ svg.leaflet-attribution-flag
     line-height: 10px;
 }
 .custom-popup .leaflet-popup-content-wrapper {
-  background:#2c3e50;
-  color:#fff;
-  font-size:16px;
-  line-height:24px;
-  border-radius: 0px;
-  }
+    background:#2c3e50;
+    color:#fff;
+    font-size:16px;
+    line-height:24px;
+    border-radius: 0px;
+}
 .leaflet-popup-content-wrapper {
     margin: 0;
 }
@@ -65,20 +72,20 @@ svg.leaflet-attribution-flag
 }
 
 
-  
+
 
 .custom-popup .leaflet-popup-content-wrapper a {
     color:rgba(255,0,0,0.1);
-  }
+}
 .custom-popup .leaflet-popup-tip-container {
-  width:30px;
-  height:15px;
-  }
+    width:30px;
+    height:15px;
+}
 .custom-popup .leaflet-popup-tip {
     background: transparent;
     border: none;
     box-shadow: none;
-  }
+}
 
 .leaflet-container .dataview-chart {
     width:10%;
@@ -138,11 +145,11 @@ svg.leaflet-attribution-flag
 
 #colorBar::before,
 #colorBar::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-style: solid;
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
 }
 
 #colorBar::before {
@@ -156,9 +163,9 @@ svg.leaflet-attribution-flag
 }
 
 #colorBar::after {
-  border-width: 5px 0 5px 10px;
-  border-color: transparent transparent transparent darkred;
-  right: -10px;
+    border-width: 5px 0 5px 10px;
+    border-color: transparent transparent transparent darkred;
+    right: -10px;
     top: 50%; /* Add top position */
 
     transform: translateY(-50%); /* Align with the text vertically */

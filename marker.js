@@ -5,8 +5,10 @@ import { drawGraph } from './chart.js';
 
 export class MarkerManager {
   constructor(map, args, fieldsClass) {
-    this.fieldsClass = fieldsClass
+    this.maxRadius = 30;
+    this.fieldsClass = fieldsClass;
     this.defaultRadius = 4;
+    this.minRadius = this.defaultRadius;
     this.map = map;
     this.currentArg = args;
     this.markersLayer = L.layerGroup().addTo(this.map);
@@ -90,8 +92,11 @@ export class MarkerManager {
         // Add an event listener to the marker for when it is clicked
         marker.on('click', async () =>
         {
-          console.log(this.endDate, this.startDate)
           // Get the URL for the average data for the current site and time period
+          if (parseInt(this.endDate[1])-1 !== this.startDate)
+          {
+            this.startDate[1] = parseInt(this.endDate[1])-1
+          }
           const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
@@ -239,6 +244,10 @@ export class MarkerManager {
         marker.on('click', async () =>
         {
           // Get the URL for the average data for the current site and time period
+          if (parseInt(this.endDate[1])-1 !== this.startDate)
+          {
+            this.startDate[1] = parseInt(this.endDate[1])-1
+          }
           const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
@@ -310,7 +319,6 @@ export class MarkerManager {
     this.total = 0;
     this.active =[];
     this.currentArg = currentArgs;
-    console.log("CLEARING")
     this.markersLayer.clearLayers();
     this.markersInactiveLayer.clearLayers();
     this.addMarker(currentSiteData, opticalDepth);
@@ -329,18 +337,34 @@ export class MarkerManager {
           if (!(layer._leaflet_id in this.originalRadius)) {
             this.originalRadius[layer._leaflet_id] = layer.getRadius();
           }
+          const sizeConstraint = parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) >= this.minRadius && parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) <= this.maxRadius
           // Update the layer's radius
-          layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          if (sizeConstraint)
+          {
+            layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          }else
+          {
+            parseFloat(args) > 0 ? layer.setRadius(this.originalRadius[layer._leaflet_id]+((this.maxRadius)-5)) : layer.setRadius(this.originalRadius[layer._leaflet_id]+this.minRadius);
+          }
+
         }
       });
 
       this.markersInactiveLayer.eachLayer((layer) => {
         if (layer instanceof L.CircleMarker) {
           if (!(layer._leaflet_id in this.originalRadius)) {
+
             this.originalRadius[layer._leaflet_id] = layer.getRadius();
           }
-          layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
-        }
+          const sizeConstraint = parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) >= this.minRadius && parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) <= this.maxRadius
+          // Update the layer's radius
+          if (sizeConstraint)
+          {
+            layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          }else
+          {
+            parseFloat(args) > 0 ? layer.setRadius(this.originalRadius[layer._leaflet_id]+((this.maxRadius)-5)) : layer.setRadius(this.originalRadius[layer._leaflet_id]+this.minRadius);
+          }        }
       });
     }else // set radius back to default
     {
@@ -368,12 +392,11 @@ export class MarkerManager {
 
       const zoomLevel = this.map.getZoom();
       this.currentZoom = this.map.getZoom();
-      // console.log(this.currentZoom, this.previousZoom)
       if (this.currentZoom < this.previousZoom) {
         this.previousZoom = this.currentZoom;
         const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
-        // console.log("ZOOMING OUT")
         this.fieldsClass.radiusIncreased = false
+        this.fieldsClass.siteCurrentlyZoomed = false
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -392,8 +415,8 @@ export class MarkerManager {
         }
       } else {
         this.previousZoom = this.currentZoom;
-        // console.log("Zooming IN")
         this.fieldsClass.radiusIncreased = false
+        this.fieldsClass.siteCurrentlyZoomed = false
         const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
@@ -425,8 +448,8 @@ export class MarkerManager {
   {
     const chartCanvas = document.createElement('canvas');
     chartCanvas.id = 'graph';
-    chartCanvas.width = 600;
-    chartCanvas.height = 200;
+    chartCanvas.width = 7;
+    chartCanvas.height = 3;
     this.chart = drawGraph(chartData, chartCanvas);
     const chartControl = L.control({position: 'bottomright'});
     chartControl.onAdd = function() {
@@ -454,12 +477,12 @@ export class MarkerManager {
       },
       onAdd: (map) => {
         // Create a button element
-        var button = L.DomUtil.create('button', 'my-button');
+        var button = L.DomUtil.create('button', 'reset-button');
         button.innerHTML = 'Reset View';
         // Add a click event listener to the button
         L.DomEvent.on(button, 'click', () => {
           this.changeMarkerRadius(null)
-          map.setView([0.0, 0.0], 1);
+          map.setView([0.0, 0.0], 3);
         });
         // Return the button element
         return button;
@@ -493,11 +516,6 @@ export class MarkerManager {
     });
     this.map.addControl(new menuControl());
   }
-
-  // applyToMap()
-  // {
-  //   this.map.addLayer(this.markersInactiveLayer);
-  // }
 
   updateDateString(date)
   {

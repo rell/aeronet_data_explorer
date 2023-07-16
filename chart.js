@@ -42,7 +42,7 @@ export function drawGraph(data, canvas)
             // Format the date string
             const date = formatDate(data.labels[index], true);
             // Return the title with the full date string and AOD value
-            return `${date} \n AOD Value: ${dataPoint}`;
+            return `${date}\nAverage AOD Value: ${dataPoint}`;
           },
           label: function(tooltipItem)
           {

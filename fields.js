@@ -8,7 +8,7 @@ export class FieldInitializer {
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
-        this.radiusIncreased = false
+        this.radiusIncreased = false;
         // this.startDate = null;
         this.avg = 10;
         this.map = map;
@@ -24,6 +24,7 @@ export class FieldInitializer {
         this.siteFieldData = [];
         this.hourTolerance = 1;
         this.recentlySetInactive = true;
+        this.siteCurrentlyZoomed = false
         this.previouslySetTime = false;
         this.daily = false
         this.init();
@@ -32,6 +33,7 @@ export class FieldInitializer {
     // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
     // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
+        this.radiusIncreased = false;
 
         this.aodFieldData = Object.keys(this.siteData[0])
             .filter(element => (element.startsWith('AOD_')))
@@ -86,21 +88,22 @@ export class FieldInitializer {
             // Update the average dropdown and API arguments
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
-
-            updateTime(this.date, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.dateTime);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
+            if (this.markerLayer.currentZoom > 5)
+            {
+                this.markerLayer.changeMarkerRadius(null)
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom)
+            }
             this.recentlySetInactive = true
+            updateTime(this.dateTime, this.daily);
         });
 
         // realtime and daily field
         const dataDropdownElm = document.getElementById('data-type-dropdown');
         dataDropdownElm.addEventListener('change', async event =>  {
-            // console.log(event.target.value)
             this.updateAvg(event.target.value);
             this.updateApiArgs();
-            console.log(this.api_args)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
-            console.log(event.target.value)
             if(parseInt(event.target.value) === 10)
             {
                 this.daily = false
@@ -109,23 +112,44 @@ export class FieldInitializer {
             {
                 this.daily = true
             }
+
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             this.recentlySetInactive = true;
+            if (this.siteCurrentlyZoomed)
+            {
+                this.markerLayer.changeMarkerRadius(15)
+            }else {
+                this.map.setView([0,0],3);
+            }
             updateTime(this.dateTime, this.daily);
         });
 
 
         // site list field
         const sitedropdownElm = document.getElementById('site-drop-down');
-        sitedropdownElm.addEventListener('change', event => {
-            const selectedValue = event.target.value;
-            const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
-            if (!this.radiusIncreased){
-                this.radiusIncreased = true
-                this.markerLayer.changeMarkerRadius(15)
-            }
-            this.map.setView([result['Latitude(decimal_degrees)'],result['Longitude(decimal_degrees)']],15);
+
+        sitedropdownElm.addEventListener('click', (event) => {
+            handleSiteChange.call(this, event);
         });
+
+        sitedropdownElm.addEventListener('change', (event) => {
+            handleSiteChange.call(this, event);
+        });
+
+        const handleSiteChange = (event) => {
+            const selectedValue = event.target.value;
+            if (selectedValue !== '') {
+                const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
+                if (this.radiusIncreased === false) {
+                    this.radiusIncreased = true
+                    this.markerLayer.changeMarkerRadius(null)
+                    this.markerLayer.changeMarkerRadius(25)
+                }
+                this.siteCurrentlyZoomed = true;
+                console.log(this.radiusIncreased)
+                this.map.setView([result['Latitude(decimal_degrees)'], result['Longitude(decimal_degrees)']], 15);
+            }
+        }
 
         const now = new Date();
         flatpickr('#date-input', {
@@ -143,19 +167,17 @@ export class FieldInitializer {
             // Get the selected date from Flatpickr
             const dateString = document.getElementById('date-input').value;
             this.dateTime = getStartEndDateTime(dateString)
-            // this.time = [hour, min];
             this.updateApiArgs();
             this.previouslySetTime = true;
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
             this.recentlySetInactive = true;
-            if (!this.radiusIncreased && this.markerLayer.currentZoom >= 5)
+            if (this.markerLayer.currentZoom > 5)
             {
-                console.log("DID THIS")
-                this.radiusIncreased = true
-                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom*1.4+this.markerLayer.defaultRadius)
+                this.markerLayer.changeMarkerRadius(null)
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
             }
             updateTime(this.dateTime, this.daily);
         });
@@ -200,7 +222,6 @@ export class FieldInitializer {
             startMonth = date.getUTCMonth()+1;
             startDay = date.getUTCDate();
         }
-        // console.log(startYear, startMonth, startDay)
         return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
     }
 
@@ -240,9 +261,4 @@ export class FieldInitializer {
     {
         this.avg = avg;
     }
-    setDate(date)
-    {
-        this.date = date;
-    }
-
 }

@@ -6,8 +6,8 @@ import { MarkerManager } from './marker.js'
 import { initMap } from './init.js';
 import { FieldInitializer } from './fields.js'
 
-// const defaultDate = getStartEndDateTime('2023-07-13T00:34:56.789Z')
-// const defaultDate = getStartEndDateTime('2023-07-13T12:34:56.789Z')
+// const defaultDate = getStartEndDateTime('2023-07-13T00:34:56.789Z') // test date
+// const defaultDate = getStartEndDateTime('2023-07-13T12:34:56.789Z') // test date
 const defaultDate = getStartEndDateTime()
 
 // // create map obj
@@ -49,13 +49,9 @@ updateTime(defaultDate);
 const markerLayer = new MarkerManager(map, args);
 markerLayer.addMarker(latestOfSet(site_data), optical_depth);
 markerLayer.addInactiveMarker(all_site_data, optical_depth);
+// build fields
 const initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer, defaultDate);
 markerLayer.fieldsClass = initFields
 // set center and default zoom
+map.setView([0,0],3);
 
-map.setView([0,0],1);
-// dynamically enlarge zoomed markers
-
-// markerLayer.zoomedMarkers();
-// create fields
-console.log(site_data)
