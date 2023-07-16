@@ -1,10 +1,9 @@
-import {getDate} from './components.js';
+// import {getDate} from './components.js';
 
 // Latest data flow
-const date = getDate().toISOString().split('T')[0].split('-');
+// const date = getDate().toISOString().split('T')[0].split('-');
 const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
 // const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
-
 // const api_args = `?year=2023&month=6&day=11&AOD15=1&AVG=10&if_no_html=1`
 
 
@@ -32,11 +31,9 @@ export async function getAllSites(year)
     }
 }
 
-export async function getSitesData(args, dataType, time, date = null)
+export async function getSitesData(args, dataType, date)
 {
-    const myTime = time
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
-    console.log(apiUrl.concat(args))
     try {
         const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
@@ -52,27 +49,21 @@ export async function getSitesData(args, dataType, time, date = null)
             // If mode is ALL POINT = 20
             // validate API dates
             const data = response.split(splitCsvAt)[1]; // CSV
-           const objs = await Papa.parse(data, config);
-
+            const objs = await Papa.parse(data, config);
             // validate time is correct -> fixes api returning wrong date
-            if(date !== null)
-            {  
-                return validateTime(objs.data, date);
-            }
-            return objs.data;
+
+            return validateTime(objs.data, date);
+            // return objs.data;
         }
         if (dataType.toString() === '10') // all points
         {
-
             // If mode is ALL POINT = 10
             // Only keep points with an currentHr from current UTC times
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
 
-            return withinTime(1, objs.data, myTime);
+            return withinTime(objs.data, date);
         }
-        // console.log(objs.data)
-        // return objs.data
     } catch (error) {
         console.error(error);
         throw new Error('Failed to get data');
@@ -97,19 +88,9 @@ function createUrl(site)
 }
 
 
-export async function getAvgUrl(site, startDate, endDate)
+export async function getAvgUrl(site, endDate, startDate)
 {
-
-    // input dates should be mm/dd/yyyy
-    if (startDate[2].length > 2) // corrects format when data is changed
-    {
-        return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${startDate[2]}&month=${startDate[0]}&day=${startDate[1]}&year1=${endDate[2]}&month1=${endDate[0]}&day1=${endDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-    }
-    else
-    {
-        return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[2]}&month=${endDate[0]}&day=${endDate[1]}&year1=${startDate[0]}&month1=${startDate[1]}&day1=${startDate[2]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-        // url = `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${endDate[0]}&month=${endDate[1]}&day=${endDate[2]}&year1=${startDate[2]}&month1=${startDate[0]}&day1=${startDate[1]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
-    }
+    return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${startDate[0]}&month=${startDate[1]}&day=${startDate[2]}&year2=${endDate[0]}&month2=${endDate[1]}&day2=${endDate[2]}&AOD15=1&AVG=20&site=${site}&if_no_html=1`
 }
 
 // export async function getAllDataUrl(site, timestart, timeend)
@@ -123,70 +104,51 @@ export async function getAvgUrl(site, startDate, endDate)
 //     return `https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?year=${year}&month=${month}&day=${day}&AOD15=1&AVG=20&if_no_html=1&site=${site}`
 // }
 
-function buildDates(date)
-{
-    date = date.map((element) => element.padStart(2, '0'));
-    let [month, day, year] = date
-    return [year, month, day]
-}
-
 export function validateTime(data, date)
 {
     const site_date = 'Date(dd:mm:yyyy)';
     return data.filter((obj) => {
+
+        let year, month, day;
         // Date(dd:mm:yyyy)
-        let [objDay, objMonth, objYear] = obj[site_date].split(':');
-        let [dateYear, dateMonth, dateDay] = date;
+        let [objDay, objMonth, objYear] = obj[site_date].split(':').map(Number);
+        if (date.length === 2) {
+            [year, month, day] = date[0].map(Number);
+        }
+        else if (date.length === 3)
+        {
+            [year, month, day] = date[1].map(Number);
+        }
+
         const timestamp = new Date(objYear, objMonth, objDay).getTime();
-        const setDate = new Date(dateYear, dateMonth, dateDay).getTime();
+        const setDate = new Date(year, month, day).getTime();
         return timestamp === setDate;
     });
 }
 
 
-export function buildChartData(data, activeDepth, startDate, endDate)
+export function buildChartData(data, activeDepth, endDate, startDate)
 {
-    if (startDate.join() === endDate.join())
-    {
-        const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
-                return {
-                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
-                };
-            }
-        });
-        return chartData.filter((obj) => obj !== undefined);
-    }
-    else
-    {
-        const chartData = data.map(obj => {
-            if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
-                return {
-                    x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
-                };
-            }
-        });
+    const chartData = data.map(obj => {
+        if(!(obj[activeDepth].toString().includes('-999'))){ // -999 represents inactive data
+            return {
+                x: obj['Date(dd:mm:yyyy)'], y: obj[activeDepth]
+            };
+        }
+    });
+    const cleanedData =  chartData.filter((obj) => obj !== undefined);
+    let [endYear, endMonth, endDay] = endDate.map(Number);
+    let [startYear, startMonth, startDay] = startDate.map(Number);
+    return  cleanedData.filter((obj) => {
+        let [day,month, year] = obj.x.split(':').map(Number);
+        const timestamp = new Date(year, month - 1, day).getTime();
+        const min = new Date(startYear, startMonth - 1, startDay).getTime();
+        const max= new Date(endYear, endMonth - 1, endDay).getTime();
 
-        const cleanedData =  chartData.filter((obj) => obj !== undefined);
-        endDate = buildDates(endDate)
-        let [endYear, endMonth, endDay] = endDate;
-        let [startYear, startMonth, startDay] = startDate;
-        return  cleanedData.filter((obj) => {
-            let [month, day, year] = obj.x.split(':');
-            let dataTime = [month, day, year]
-            dataTime = buildDates(dataTime);
-            day = dataTime[1];
-            month = dataTime[2];
-            year = dataTime[0];
-            const timestamp = new Date(year, month, day).getTime();
-            const max = new Date(startYear, startMonth, startDay).getTime();
-            const min = new Date(endYear, endMonth, endDay).getTime();
+        // if  min <= timestamp <= max -> data is within range
+        return timestamp >= min && timestamp <= max;
+    })
 
-            // if  min <= timestamp <= max -> data is within range
-            return timestamp >= min && timestamp <= max;
-
-        })
-    }
 }
 
 
@@ -215,12 +177,6 @@ export async function getFullData(url)
     }
 }
 
-// export function recentCheck ()
-// {
-//
-//     return undefined
-// }
-
 export function getAvg (objs, site, opticalDepth)
 {
     const activeSiteKey = 'AERONET_Site'
@@ -235,59 +191,42 @@ export function getAvg (objs, site, opticalDepth)
     return (aodAvg/totalAvg).toPrecision(4);
 }
 
-export function withinTime (timeTolerance, dataset, time)
+export function withinTime (dataset, defaultDate)
 {
-    console.log(time)
-    // keys of data
+    // Site time Key
     const siteTime = 'Time(hh:mm:ss)';
-    let currentHr = null;
 
-    let currentMn = null;
-    let withinTime = [];
-    let startHr; // time to get in relation to current time (startTime - currentTime)
-    if (time === null)
+    let previousHr, hour, bufferHr, minute;
+    if (defaultDate.length === 2)
     {
-        currentHr = getDate().getUTCHours();
-        currentMn = getDate().getUTCMinutes();
-        console.log(currentHr)
-        startHr = currentHr === 0 ? '23' : (currentHr - 1).toString().padStart(2, '0');
+        [previousHr, hour, bufferHr, minute] = defaultDate[1].map(Number);
 
-    }else {
-        currentHr = time[0];
-        currentMn = time[1];
-        if (parseInt(currentHr) === 0 || parseInt(currentHr) - timeTolerance < 0) {
-            let newStartHr = parseInt(currentHr) - timeTolerance;
-            startHr = 24 + newStartHr;
-            startHr = startHr.toString().padStart(2, '0');
-        } else {
-            startHr = parseInt(currentHr) - timeTolerance;
-            startHr = startHr.toString().padStart(2, '0');
-        }
-        currentMn = currentMn.toString().padStart(2, '0');
+    }
+    else if (defaultDate.length === 3)
+    {
+        [previousHr, hour, bufferHr, minute] = defaultDate[2].map(Number);
     }
 
-    console.log(dataset)
+
+    let withinTime = [];
+
     // do tolerance check whilst adding points to map for adding only points that are within an hour tolerance of the current hour
     dataset.forEach( element => {
         const [siteHours, siteMinutes, siteSeconds] = element[siteTime].split(':').map(Number);
-        const currentHours = parseInt(currentHr);
-        const currentMinutes = parseInt(currentMn);
-        const startHours = parseInt(startHr);
         let isBetween;
-        if(parseInt(currentHr) !== 0) {
-            isBetween = (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
-                && (currentHours > siteHours || (currentHours === siteHours && currentMinutes >= siteMinutes) || (currentHours === siteHours && currentMinutes === siteMinutes))
-                && (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes));
+        if(parseInt(hour) !== 0) {
+            isBetween = (hour > siteHours || (hour === siteHours && minute >= siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                && (hour > siteHours || (hour === siteHours && minute >= siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                && (previousHr < siteHours || (previousHr === siteHours && minute <= siteMinutes) || (previousHr === siteHours && minute === siteMinutes));
         }
         else
         {
-            isBetween = ((currentHours === siteHours && currentMinutes > siteMinutes) || (currentHr === siteHours && currentMinutes === siteMinutes))
-                        || (startHours < siteHours || (startHours === siteHours && currentMinutes <= siteMinutes) || (startHours === siteHours && currentMinutes === siteMinutes))
+            isBetween = ((hour === siteHours && minute > siteMinutes) || (hour === siteHours && minute === siteMinutes))
+                        || (previousHr < siteHours || (previousHr === siteHours && minute <= siteMinutes) || (previousHr === siteHours && minute === siteMinutes))
         }
-        // console.log(`start Time:${startHr}: current${currentMn}-${currentHr}:${currentMn} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
+        // console.log(`start Time:${previousHr}: current${minute}-${hour}:${minute} is ${siteHours}:${siteMinutes} between? ${isBetween}`);
         isBetween ? withinTime.push(element) : undefined;
     });
-    // console.log(withinTime)
     return withinTime;
 }
 

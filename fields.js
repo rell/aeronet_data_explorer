@@ -1,23 +1,30 @@
 import {getSitesData, latestOfSet, validateTime} from './data.js';
-import {getDate, updateAOD, updateTime} from './components.js';
+import {updateAOD, updateTime, getStartEndDateTime} from './components.js';
 import {initDropdown} from './init.js';
 
 // This class is responsible for initializing and updating the various fields in the user interface
 export class FieldInitializer {
-    constructor(siteData, allSiteData, opticalDepth, map, markerLayer) {
+    constructor(siteData, allSiteData, opticalDepth, map, markerLayer, dateTime) {
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
-        this.startDate = null;
+        this.radiusIncreased = false;
+        // this.startDate = null;
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        this.date = getDate().toISOString().split('T')[0].split('-');
-        this.time = null;
+        // this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
+        this.dateTime = dateTime;
+
+        // TODO: SET DATE FOR CHART DATA TO UTILIZE
+        this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
+        this.markerLayer.startDate = this.setChartStart(this.dateTime)
+
         this.aodFieldData = [];
         this.siteFieldData = [];
         this.hourTolerance = 1;
         this.recentlySetInactive = true;
+        this.siteCurrentlyZoomed = false
         this.previouslySetTime = false;
         this.daily = false
         this.init();
@@ -26,7 +33,8 @@ export class FieldInitializer {
     // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
     // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
-        // Initialize dropdown for selecting optical depth.
+        this.radiusIncreased = false;
+
         this.aodFieldData = Object.keys(this.siteData[0])
             .filter(element => (element.startsWith('AOD_')))
             .map(element => ({ value: element, label: element.split('_')[1] }));
@@ -46,7 +54,7 @@ export class FieldInitializer {
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
         const aodDisc = 'Select wavelength for AOD';
-        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder);
+        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false);
 
         placeholder = 'Select'
         const siteDisc = 'AEROnet Site: ';
@@ -80,10 +88,14 @@ export class FieldInitializer {
             // Update the average dropdown and API arguments
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
-
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
+            if (this.markerLayer.currentZoom > 5)
+            {
+                this.markerLayer.changeMarkerRadius(null)
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom)
+            }
             this.recentlySetInactive = true
+            updateTime(this.dateTime, this.daily);
         });
 
         // realtime and daily field
@@ -91,8 +103,7 @@ export class FieldInitializer {
         dataDropdownElm.addEventListener('change', async event =>  {
             this.updateAvg(event.target.value);
             this.updateApiArgs();
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
-            console.log(event.target.value)
+            this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             if(parseInt(event.target.value) === 10)
             {
                 this.daily = false
@@ -101,18 +112,44 @@ export class FieldInitializer {
             {
                 this.daily = true
             }
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             this.recentlySetInactive = true;
+            if (this.siteCurrentlyZoomed)
+            {
+                this.markerLayer.changeMarkerRadius(15)
+            }else {
+                this.map.setView([0,0],3);
+            }
+            updateTime(this.dateTime, this.daily);
         });
+
 
         // site list field
         const sitedropdownElm = document.getElementById('site-drop-down');
-        sitedropdownElm.addEventListener('change', event => {
-            const selectedValue = event.target.value;
-            const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
-            this.map.setView([result['Latitude(decimal_degrees)'],result['Longitude(decimal_degrees)']],15);
+
+        sitedropdownElm.addEventListener('click', (event) => {
+            handleSiteChange.call(this, event);
         });
+
+        sitedropdownElm.addEventListener('change', (event) => {
+            handleSiteChange.call(this, event);
+        });
+
+        const handleSiteChange = (event) => {
+            const selectedValue = event.target.value;
+            if (selectedValue !== '') {
+                const result = this.allSiteData.find(obj => obj['Site_Name'] === selectedValue);
+                if (this.radiusIncreased === false) {
+                    this.radiusIncreased = true
+                    this.markerLayer.changeMarkerRadius(null)
+                    this.markerLayer.changeMarkerRadius(25)
+                }
+                this.siteCurrentlyZoomed = true;
+                console.log(this.radiusIncreased)
+                this.map.setView([result['Latitude(decimal_degrees)'], result['Longitude(decimal_degrees)']], 15);
+            }
+        }
 
         const now = new Date();
         flatpickr('#date-input', {
@@ -128,17 +165,21 @@ export class FieldInitializer {
 
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
-            let dateValue = document.getElementById('date-input').value;
-            const date = dateValue.split('T')[0].split('-');
-            this.date = [date[0],date[1],date[2]];
-            let [hour, min] = dateValue.split('T')[1].split('.')[0].split(':');
-            this.time = [hour, min];
+            const dateString = document.getElementById('date-input').value;
+            this.dateTime = getStartEndDateTime(dateString)
             this.updateApiArgs();
             this.previouslySetTime = true;
-            updateTime(this.date, this.time, this.previouslySetTime, this.daily);
-            this.siteData = await getSitesData(this.api_args, this.avg, this.time, this.date);
-            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args, this.time, this.date);
+            this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
+            this.markerLayer.startDate = this.setChartStart(this.dateTime)
+            this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
+            this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
             this.recentlySetInactive = true;
+            if (this.markerLayer.currentZoom > 5)
+            {
+                this.markerLayer.changeMarkerRadius(null)
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+            }
+            updateTime(this.dateTime, this.daily);
         });
 
         const toggleInactiveOff = document.getElementById('hide-inactive');
@@ -159,6 +200,11 @@ export class FieldInitializer {
             }
         });
 
+ 
+    setChartStart() {
+        let date;
+        let startYear,startMonth,startDay,year,month,day;
+        if (this.dateTime.length === 3)
     }
 
     // updates the API arguments used to retrieve AERONET site data based on the selected date and time
@@ -168,41 +214,61 @@ export class FieldInitializer {
         let currentMn;
 
         if(this.time == null)
+
         {
-            const now = new Date();
-            currentHr = now.getHours();
-            currentMn = now.getMinutes();
-            this.time = [currentHr, currentMn]
+            [year, month, day] = this.dateTime[1].map(Number);
+            date = new Date(year, month - 1, day);
+            date.setDate(date.getDate()-30);
+            startYear = date.getUTCFullYear();
+            startMonth = date.getUTCMonth();
+            startDay = date.getUTCDate();
         }
-        if (parseFloat(this.time[0]-this.hourTolerance) < 0)
+        else if (this.dateTime.length === 2)
         {
-        // {this.time[0] = parseFloat(this.time[0] === 0) ? parseInt()this.time[0]+1 : undefined;
-            console.log("here");
-            let newHr = 24+(this.time[0]-this.hourTolerance)
-    //
-    //         console.log("HERRRREEEEE")
-    //         console.log(newHr)
-            let currentDate = new Date(this.date[0], this.date[1]-1, this.date[2]);
-            let previousDate = new Date(currentDate.setDate(currentDate.getDate() - 1));
-            previousDate = [previousDate.getFullYear(), previousDate.getMonth()+1, previousDate.getDate()];
-            this.api_args = (parseInt(this.time[0])===0) ?
-                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1` :
-                `?year=${previousDate[0]}&month=${previousDate[1]}&day=${previousDate[2]}&hour=${newHr}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseFloat(this.time[0])}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
+            [year, month, day] = this.dateTime[0].map(Number);
+            date = new Date(year, month - 1, day);
+            date.setDate(date.getDate()-30);
+            startYear = date.getUTCFullYear();
+            startMonth = date.getUTCMonth()+1;
+            startDay = date.getUTCDate();
         }
-        // console.log("MISSED")
-        else
+        return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
+    }
+
+    // updates the API arguments used to retrieve AERO-NET site data based on the selected date and time
+    updateApiArgs()
+    {
+        let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
+
+
+        if (parseFloat(this.avg) === 10 || this.avg === null) {
+            if (this.dateTime.length === 2) {
+                [year, month, day] = this.dateTime[0].map(Number);
+                [previousHr, hour, bufferHr, minute] = this.dateTime[1].map(Number);
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+
+            } else if (this.dateTime.length === 3) {
+                [previousYear, previousMonth, previousDay] = this.dateTime[0].map(Number);
+                [year, month, day] = this.dateTime[1].map(Number);
+                [previousHr, hour, bufferHr, minute] = this.dateTime[2].map(Number);
+                this.api_args = `?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
+            }
+        }else if (parseFloat(this.avg) === 20)
         {
-            this.api_args = `?year=${this.date[0]}&month=${this.date[1]}&day=${this.date[2]}&hour=${this.time[0]-this.hourTolerance}&year2=${this.date[0]}&month2=${this.date[1]}&day2=${this.date[2]}&hour2=${parseInt(this.time[0])+1}&AOD15=1&AVG=${this.avg}&if_no_html=1`;
+            if (this.dateTime.length === 2) {
+                [year, month, day] = this.dateTime[0].map(Number);
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&AOD15=1&AVG=20&if_no_html=1`
+
+            } else if (this.dateTime.length === 3) {
+                [year, month, day] = this.dateTime[1].map(Number);
+                this.api_args = `?year=${year}&month=${month}&day=${day}&year2=${year}&month2=${month}&day2=${day}&AOD15=1&AVG=20&if_no_html=1`
+            }
+
         }
-        // }
+
     }
     updateAvg(avg)
     {
         this.avg = avg;
     }
-    setDate(date)
-    {
-        this.date = date;
-    }
-
 }

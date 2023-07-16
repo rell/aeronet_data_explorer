@@ -1,11 +1,14 @@
 import { getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet } from './data.js';
-import { setColor, getEndDate} from './components.js';
+import { setColor } from './components.js';
 import { drawGraph } from './chart.js';
 // import { } // set all keys to data in a config file
 
 export class MarkerManager {
-  constructor(map, args) {
+  constructor(map, args, fieldsClass) {
+    this.maxRadius = 30;
+    this.fieldsClass = fieldsClass;
     this.defaultRadius = 4;
+    this.minRadius = this.defaultRadius;
     this.map = map;
     this.currentArg = args;
     this.markersLayer = L.layerGroup().addTo(this.map);
@@ -13,8 +16,8 @@ export class MarkerManager {
     this.total = 0;
     this.active = [];
     this.chart = null;
+    this.endDate = null;
     this.startDate = null;
-    this.endDate = getEndDate(this.startDate, 30);
     this.dateString = null;
     this.chartTimeLength = 30; // days to capture chart avgs
     this.currentZoom = undefined;
@@ -90,11 +93,15 @@ export class MarkerManager {
         marker.on('click', async () =>
         {
           // Get the URL for the average data for the current site and time period
-          const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
+          if (parseInt(this.endDate[1])-1 !== this.startDate)
+          {
+            this.startDate[1] = parseInt(this.endDate[1])-1
+          }
+          const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, activeDepth, this.startDate, this.endDate);
+          const chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
           // Create a chart control from the chart data
           const chartControl = this.createMarkerChart(chartData)
           // Add the chart control to the markers layer
@@ -237,11 +244,15 @@ export class MarkerManager {
         marker.on('click', async () =>
         {
           // Get the URL for the average data for the current site and time period
-          const avgUrl = await getAvgUrl(site, this.startDate, this.endDate);
+          if (parseInt(this.endDate[1])-1 !== this.startDate)
+          {
+            this.startDate[1] = parseInt(this.endDate[1])-1
+          }
+          const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, active_depth, this.startDate, this.endDate);
+          const chartData = buildChartData(timedSiteData, active_depth, this.endDate, this.startDate);
 
           // Check if there is data in the chart data array
           if (chartData.length !== 0) {
@@ -304,7 +315,7 @@ export class MarkerManager {
   //   this.markersLayer.clearLayers();
   // }
 
-  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, time, startDate){
+  updateMarkers(currentSiteData, allSiteData, opticalDepth, currentArgs, ){
     this.total = 0;
     this.active =[];
     this.currentArg = currentArgs;
@@ -312,9 +323,6 @@ export class MarkerManager {
     this.markersInactiveLayer.clearLayers();
     this.addMarker(currentSiteData, opticalDepth);
     this.addInactiveMarker(allSiteData, opticalDepth);
-    this.time = time;
-    this.startDate = startDate;
-    this.endDate = getEndDate(startDate, this.chartTimeLength);
   }
   // moveInactiveMarkersToBack() {
   //   this.markersInactiveLayer.bringToBack();
@@ -329,18 +337,34 @@ export class MarkerManager {
           if (!(layer._leaflet_id in this.originalRadius)) {
             this.originalRadius[layer._leaflet_id] = layer.getRadius();
           }
+          const sizeConstraint = parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) >= this.minRadius && parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) <= this.maxRadius
           // Update the layer's radius
-          layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          if (sizeConstraint)
+          {
+            layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          }else
+          {
+            parseFloat(args) > 0 ? layer.setRadius(this.originalRadius[layer._leaflet_id]+((this.maxRadius)-5)) : layer.setRadius(this.originalRadius[layer._leaflet_id]+this.minRadius);
+          }
+
         }
       });
 
       this.markersInactiveLayer.eachLayer((layer) => {
         if (layer instanceof L.CircleMarker) {
           if (!(layer._leaflet_id in this.originalRadius)) {
+
             this.originalRadius[layer._leaflet_id] = layer.getRadius();
           }
-          layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
-        }
+          const sizeConstraint = parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) >= this.minRadius && parseInt(parseFloat(layer.getRadius()) + parseFloat(args)) <= this.maxRadius
+          // Update the layer's radius
+          if (sizeConstraint)
+          {
+            layer.setRadius(parseFloat(layer.getRadius()) + parseFloat(args));
+          }else
+          {
+            parseFloat(args) > 0 ? layer.setRadius(this.originalRadius[layer._leaflet_id]+((this.maxRadius)-5)) : layer.setRadius(this.originalRadius[layer._leaflet_id]+this.minRadius);
+          }        }
       });
     }else // set radius back to default
     {
@@ -368,11 +392,11 @@ export class MarkerManager {
 
       const zoomLevel = this.map.getZoom();
       this.currentZoom = this.map.getZoom();
-      // console.log(this.currentZoom, this.previousZoom)
       if (this.currentZoom < this.previousZoom) {
         this.previousZoom = this.currentZoom;
-        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
-        // console.log("ZOOMING OUT")
+        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+        this.fieldsClass.radiusIncreased = false
+        this.fieldsClass.siteCurrentlyZoomed = false
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -384,15 +408,16 @@ export class MarkerManager {
         });
         if (this.currentZoom >= 5)
         {
-          this.changeMarkerRadius(-2)
+          this.changeMarkerRadius(-4)
         }
         else {
           this.changeMarkerRadius(null)
         }
       } else {
         this.previousZoom = this.currentZoom;
-        // console.log("Zooming IN")
-        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
+        this.fieldsClass.radiusIncreased = false
+        this.fieldsClass.siteCurrentlyZoomed = false
+        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -404,7 +429,7 @@ export class MarkerManager {
         });
         if (this.currentZoom >= 5)
         {
-          this.changeMarkerRadius(+2)
+          this.changeMarkerRadius(+4)
         }
         else
         {
@@ -414,12 +439,17 @@ export class MarkerManager {
     });
   }
 
+  setDate()
+  {
+
+  }
+
   createMarkerChart(chartData)
   {
     const chartCanvas = document.createElement('canvas');
     chartCanvas.id = 'graph';
-    chartCanvas.width = 600;
-    chartCanvas.height = 200;
+    chartCanvas.width = 7;
+    chartCanvas.height = 3;
     this.chart = drawGraph(chartData, chartCanvas);
     const chartControl = L.control({position: 'bottomright'});
     chartControl.onAdd = function() {
@@ -447,12 +477,12 @@ export class MarkerManager {
       },
       onAdd: (map) => {
         // Create a button element
-        var button = L.DomUtil.create('button', 'my-button');
+        var button = L.DomUtil.create('button', 'reset-button');
         button.innerHTML = 'Reset View';
         // Add a click event listener to the button
         L.DomEvent.on(button, 'click', () => {
           this.changeMarkerRadius(null)
-          map.setView([0.0, 0.0], 1);
+          map.setView([0.0, 0.0], 3);
         });
         // Return the button element
         return button;
@@ -469,6 +499,8 @@ export class MarkerManager {
       onAdd: function () {
         var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
         container.innerHTML = '<div class="menu-header"><button id="menu-toggle"><p class="filter-title">Filters</p></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
+        var menuContent = container.querySelector('.menu-content');
+        menuContent.style.display = 'none';
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
           var menuContent = container.querySelector('.menu-content');
@@ -485,14 +517,8 @@ export class MarkerManager {
     this.map.addControl(new menuControl());
   }
 
-  // applyToMap()
-  // {
-  //   this.map.addLayer(this.markersInactiveLayer);
-  // }
-
   updateDateString(date)
   {
-
     // before custom date is on
     // date format = mm/dd/yyyy
     // setting date
