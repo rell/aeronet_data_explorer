@@ -2,7 +2,7 @@ export function initMap()
 {
     // const copy = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     const basemap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const layer = L.tileLayer(basemap, {attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a> ', noWrap: false, tileSize: 256 });
+    const layer = L.tileLayer(basemap, {attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a> ', noWrap: true, tileSize: 256 });
 
 
     // Define the bounds for the map
@@ -13,7 +13,7 @@ export function initMap()
     const options = {
         layers: [layer],
         minwidth: 200,
-        minZoom: 1,
+        minZoom: 2,
         maxZoom: 18,
         maxBounds: bounds
     }

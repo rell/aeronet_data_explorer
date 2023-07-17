@@ -24,13 +24,13 @@ if (defaultDate.length === 2)
 }
 else if (defaultDate.length === 3)
 {
-    [previousYear, previousMonth, previousDay] = defaultDate[0];
+    [previousYear, previousMonth, previousDay] = defaultDate[0].map(Number);
     [year, month, day] = defaultDate[1].map(Number);
     [previousHr, hour, bufferHr, minute] = defaultDate[2].map(Number);
     args=`?year=${previousYear}&month=${previousMonth}&day=${previousDay}&year2=${year}&month2=${month}&day2=${day}&hour=${previousHr}&hour2=${bufferHr}&AOD15=1&AVG=10&if_no_html=1`
 }
 
-
+console.log(year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute)
 // initial pull of data
 const site_data = await getSitesData(args, 10, defaultDate); // passing default args and (realtime = 10)
 const all_site_data = await getAllSites(year);

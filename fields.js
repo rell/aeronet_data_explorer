@@ -1,4 +1,4 @@
-import {getSitesData, latestOfSet, validateTime} from './data.js';
+import {getSitesData, latestOfSet} from './data.js';
 import {updateAOD, updateTime, getStartEndDateTime} from './components.js';
 import {initDropdown} from './init.js';
 
@@ -9,23 +9,17 @@ export class FieldInitializer {
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
         this.radiusIncreased = false;
-        // this.startDate = null;
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        // this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
         this.dateTime = dateTime;
-
-        // TODO: SET DATE FOR CHART DATA TO UTILIZE
         this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
         this.markerLayer.startDate = this.setChartStart(this.dateTime)
-
         this.aodFieldData = [];
         this.siteFieldData = [];
         this.hourTolerance = 1;
         this.recentlySetInactive = true;
         this.siteCurrentlyZoomed = false
-        this.previouslySetTime = false;
         this.daily = false
         this.init();
     }
@@ -168,7 +162,6 @@ export class FieldInitializer {
             const dateString = document.getElementById('date-input').value;
             this.dateTime = getStartEndDateTime(dateString)
             this.updateApiArgs();
-            this.previouslySetTime = true;
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
@@ -200,7 +193,7 @@ export class FieldInitializer {
             }
         });
 
-    }
+        }
     setChartStart() {
         let date;
         let startYear,startMonth,startDay,year,month,day;

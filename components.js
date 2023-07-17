@@ -126,11 +126,13 @@ export function updateAOD(optical_dep)
 
 export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
 {
+    let yesterday;
     let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
     if(!dateTime)
     {
         const now = new Date();
-        const yesterday = new Date(Date.parse(now.toISOString()))
+        yesterday = new Date(Date.parse(now.toISOString()))
+        yesterday.setDate(now.getDate() - 1)
         year = now.getUTCFullYear().toString().padStart(4, '0');
         month = (now.getUTCMonth() + 1).toString().padStart(2, '0');
         day = (now.getUTCDate()).toString().padStart(2, '0');
@@ -143,7 +145,7 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
     else if (dateTime)
     {
         const setTime = new Date(Date.parse(dateTime))
-        const yesterday = new Date(Date.parse(dateTime))
+        yesterday = new Date(Date.parse(dateTime))
         yesterday.setDate(setTime.getDate() - 1)
         year = setTime.getUTCFullYear().toString().padStart(4, '0');
         month = (setTime.getUTCMonth() + 1).toString().padStart(2, '0');
@@ -154,6 +156,7 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
         previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
         previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
     }
+
 
     previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0');
     bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0');
