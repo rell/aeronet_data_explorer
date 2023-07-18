@@ -285,15 +285,15 @@ export class FieldInitializer {
         });
     }
 
-        setToggleValue(value) {
-            this.toggleInactive.checked = value;
-            if (value === false) {
-                this.markerLayer.clearInactiveMarkers();
-            } else if (value === true) {
-                this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
-            }
+    setToggleValue(value) {
+        this.toggleInactive.checked = value;
+        if (value === false) {
+            this.markerLayer.clearInactiveMarkers();
+        } else if (value === true) {
+            this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
         }
-        setChartStart() {
+    }
+    setChartStart() {
         let date;
         let startYear,startMonth,startDay,year,month,day;
         if (this.dateTime.length === 3)
