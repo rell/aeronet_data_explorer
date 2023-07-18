@@ -23,25 +23,25 @@ export function initMap()
     return L.map('map', options);
 }
 
-export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder)// create dropdown fields
+export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder, group)// create dropdown fields
 {
-    let dropdownHTML = `<label for=${id}>${fieldDescription}:</label>`
-    dropdownHTML += `<select id='${id}'>`;
+    console.log(group)
+    let dropdownHTML = `<label for=${id}>${fieldDescription}</label>`;
+    dropdownHTML += `<select id='${id}' name='${group}'>`;
 
-    if (disabledPlaceholder)
-    {
+    if (disabledPlaceholder) {
         dropdownHTML += `<option value='' selected>${placeholder}</option>`;
-
     }
+
     for (const option of options) {
-        if (option.value.toString().includes(placeholder) && !disabledPlaceholder)
-        {
+        if (option.value.toString().includes(placeholder) && !disabledPlaceholder) {
             dropdownHTML += `<option value='${option.value}' selected>${option.label}</option>`;
-        } else
-        {
+        } else {
             dropdownHTML += `<option value='${option.value}'>${option.label}</option>`;
         }
     }
+
     dropdownHTML += `</select>`;
+
     return dropdownHTML;
 }

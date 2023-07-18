@@ -1,35 +1,51 @@
+#map-container {
+    display: inline-flex;
+    width: 100%;
+}
 html,
 body,
 #map {
+    height: 100vh;
+    width: 100%;
+    float: left;
+}
+body {
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
 }
-
-.row {
-    height: 100%;
-}
-
-.popup {
-    height: 100%;
-}
-
-svg.leaflet-attribution-flag
+p
 {
-  display: none !important;
+    font-family: 'Open Sans', sans-serif;
 }
 
+/*#map {*/
+/*    height: 100vh;*/
+/*    width: 70%;*/
+/*    float: left;*/
+/*}*/
 
-#form {
-    display: flex;
-    /*height: auto;*/
-}
 #fields {
-    display: flex;
-    flex-direction: column;
-    margin: 10px
+
+    height: 100vh;
+    width: 30%;
+    float: left;
+    margin-left: 20px;
 }
+
+.row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+.row {
+    height: 100vh;
+}
+
+/*#fields {*/
+
+/*    flex-direction: column;*/
+/*    margin: 10px*/
+/*}*/
 /*.row {*/
 /*    display: flex;*/
 /*    flex-wrap: wrap;*/
@@ -40,6 +56,20 @@ svg.leaflet-attribution-flag
 /*}*/
 .leaflet-container{
     background: #FFF;
+}
+.popup {
+    height: 100%;
+}
+
+svg.leaflet-attribution-flag
+{
+    display: none !important;
+}
+
+
+#form {
+    display: flex;
+    /*height: auto;*/
 }
 
 .custom-icon {
@@ -241,3 +271,4 @@ div#currentTime {
     text-align: CENTER;
     FONT-SIZE: SMALL;
 }
+
