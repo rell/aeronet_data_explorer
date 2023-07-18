@@ -22,8 +22,6 @@ body
     overflow-y: hidden;
 }
 #fields {
-
-    /*height: 100vh;*/
     width: 30%;
     float: left;
     margin-left: 20px;
@@ -36,7 +34,6 @@ label {
 
 }
 
-/* Style for select elements */
 select {
     display: inline-block;
     width: 100%;
@@ -47,7 +44,6 @@ select {
     background-color: #fff;
 }
 
-/* Style for input[type="text"] elements */
 input[type="text"] {
     display: block;
     width: 100%;
@@ -72,10 +68,8 @@ input[type="text"] {
 }
 
 
-/* Style for button elements */
 button {
     display: inline-block;
-    /*margin-top: 0.5rem;*/
     border-radius: 0.25rem;
     padding: 0.5rem 1rem;
     font-size: 1rem;
@@ -83,7 +77,6 @@ button {
     color: #fff;
     background-color: #007bff;
     border: none;
-    /*border-radius: 0.25rem;*/
     cursor: pointer;
 }
 .toggle-container {
@@ -152,7 +145,7 @@ button {
 .tooltip-content {
     z-index: 30000;
     position: absolute;
-    top: -100px;
+    top: 15px;
     left: calc(50% - 75px);
     width: 150px;
     padding: 10px;

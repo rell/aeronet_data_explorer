@@ -61,7 +61,6 @@ export async function getSitesData(args, dataType, date)
             // Only keep points with an currentHr from current UTC times
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
-            console.log(date, objs.data)
 
             return withinTime(objs.data, date);
         }

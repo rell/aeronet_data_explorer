@@ -25,8 +25,6 @@ export class FieldInitializer {
         this.init();
     }
 
-    // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
-    // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
         let toolTipContent;
         this.radiusIncreased = false;
@@ -72,7 +70,7 @@ export class FieldInitializer {
                                  <div class="tooltip-trigger-container">
                                  <span class="tooltip-trigger">?</span>
                                  <div class="tooltip-content">
-                                 <p>This option allows you to select a date and time relative to your local time.</p>
+                                 <p>This option allows you to select a date and time relative to your local time. <strong>Time is converted from local to UTC.</strong></p>
                                  </div>
                                  </div>
                                  </div>
@@ -82,7 +80,7 @@ export class FieldInitializer {
                                  </div>
                                  </div>`;
 
-        // Initialize radio buttons for toggling inactive stations.
+        // Initialize toggle for toggling inactive stations.
         const inactiveOff = `<div class="tooltip-container">
                                  <div id='row'> <label for="toggle-inactive">Inactive Sites</label>
                                  <div class="tooltip-trigger-container">
@@ -201,7 +199,6 @@ export class FieldInitializer {
                     this.markerLayer.changeMarkerRadius(25)
                 }
                 this.siteCurrentlyZoomed = true;
-                console.log(this.radiusIncreased)
                 this.map.setView([result['Latitude(decimal_degrees)'], result['Longitude(decimal_degrees)']], 15);
             }
         }
