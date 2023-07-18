@@ -9,7 +9,7 @@ label {
 
 /* Style for select elements */
 select {
-    display: block;
+    display: inline-block;
     width: 100%;
     padding: 0.5rem;
     font-size: 1rem;
