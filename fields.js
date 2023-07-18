@@ -28,6 +28,7 @@ export class FieldInitializer {
     // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
     // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
+        let toolTipContent;
         this.radiusIncreased = false;
 
         this.aodFieldData = Object.keys(this.siteData[0])
@@ -48,18 +49,22 @@ export class FieldInitializer {
 
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
-        const aodDisc = 'Select wavelength for AOD';
-        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false, 'aod-fields');
+        const aodDisc = 'Select wavelength';
+        toolTipContent = 'Select a preferred wavelength for the aerosol optical depth.'
+        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false, 'aod-fields', toolTipContent);
 
         placeholder = 'Select'
-        const siteDisc = 'AERONET Site';
-        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields');
+        const siteDisc = 'Site';
+        toolTipContent =  'This option allows you to select an AERONET site of interest, and you will be directed to that specific point.'
+        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent);
 
 
-        const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
+        const datatypeOpt = [{value: 10, label: 'Realtime'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
+        toolTipContent =  '<strong>Realtime:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
+            '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
         placeholder = 'realtime'
-        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields');
+        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields', toolTipContent);
 
         // Initialize Flatpickr date/time picker.
         const calender = `<div class="tooltip-container">
@@ -95,16 +100,20 @@ export class FieldInitializer {
 
         // Set the HTML for the fields container.
         const fieldsContainer = document.getElementById('fields');
-        fieldsContainer.innerHTML = `<form>${dropdownAOD}${dropdownSite}${dropdownData}${calender}${inactiveOff}</form>`;
+        const header = document.createElement("h2");
+        header.textContent = "Filters";
+
+        // Insert the header before the form element
+        fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
+
+        fieldsContainer.innerHTML = `${header.outerHTML}<form>${dropdownAOD}${dropdownSite}${dropdownData}${calender}${inactiveOff}</form>`;
 
         // Append the fields container to the map container
         const mapContainer = document.getElementById('map-container');
         mapContainer.appendChild(fieldsContainer);
 
-        // Add event listeners to the dropdown menus, date/time picker, and radio buttons.
         const aodDropdownElm = document.getElementById('optical-depth-dropdown');
         aodDropdownElm.addEventListener('change', event => {
-            // Update the average dropdown and API arguments
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);

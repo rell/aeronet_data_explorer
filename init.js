@@ -23,10 +23,17 @@ export function initMap()
     return L.map('map', options);
 }
 
-export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder, group)// create dropdown fields
+export function initDropdown(id, options, fieldDescription, placeholder, disabledPlaceholder, group, toolTipContent)// create dropdown fields
 {
-    console.log(group)
-    let dropdownHTML = `<label for=${id}>${fieldDescription}</label>`;
+    let dropdownHTML = `<div class="tooltip-container">
+                               <div id='row'><label for=${id}>${fieldDescription}</label>
+                               <div class="tooltip-trigger-container">
+                               <span class="tooltip-trigger">?</span>
+                               <div class="tooltip-content">
+                               <p>${toolTipContent}</p>
+                               </div>
+                               </div>
+                               </div>`;
     dropdownHTML += `<select id='${id}' name='${group}'>`;
 
     if (disabledPlaceholder) {
@@ -41,7 +48,7 @@ export function initDropdown(id, options, fieldDescription, placeholder, disable
         }
     }
 
-    dropdownHTML += `</select>`;
+    dropdownHTML += `</select></div>`;
 
     return dropdownHTML;
 }

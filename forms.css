@@ -1,5 +1,34 @@
 /* Style for label elements */
 
+h2
+{
+    font-family: 'Open Sans', sans-serif;
+    padding: 0;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+form{
+    font-family: 'Open Sans', sans-serif;
+    padding: 10px;
+    /*margin-top: 50%;*/
+}
+label
+{
+    font-weight: bold;
+}
+
+body
+{
+    overflow-y: hidden;
+}
+#fields {
+
+    /*height: 100vh;*/
+    width: 30%;
+    float: left;
+    margin-left: 20px;
+}
+
 label {
     display: block;
     margin-bottom: 0.5rem;
@@ -113,21 +142,6 @@ button {
     transform: translateX(26px);
 }
 
-form{
-    font-family: 'Open Sans', sans-serif;
-    padding: 10px;
-    margin-top: 50%;
-}
-label
-{
-    font-weight: bold;
-}
-
-body
-{
-    overflow-y: hidden;
-}
-
 .tooltip-container {
     position: relative;
     flex-direction: column;
@@ -167,18 +181,13 @@ body
     width: 10px;
     height: 10px;
     line-height: 10px;
-
     display: inline-block;
     margin-left: 5px;
-    /*font-size: 1em;*/
     font-weight: bold;
     color: #333;
     border: 2px solid #333;
     border-radius: 50%;
-    /*width: 15px;*/
-    /*height: 15px;*/
     text-align: center;
-    /*line-height: 15px;*/
     cursor: pointer;
     transition: background-color 0.2s ease-out;
 }
@@ -194,7 +203,3 @@ body
     display: inline-block;
     vertical-align: middle;
 }
-
-/*.input-container button {*/
-/*    margin-top: 10px;*/
-/*}*/

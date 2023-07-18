@@ -24,22 +24,7 @@ p
 /*    float: left;*/
 /*}*/
 
-#fields {
 
-    height: 100vh;
-    width: 30%;
-    float: left;
-    margin-left: 20px;
-}
-
-.row::after {
-    content: "";
-    clear: both;
-    display: table;
-}
-.row {
-    height: 100vh;
-}
 
 /*#fields {*/
 
