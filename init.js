@@ -13,7 +13,7 @@ export function initMap()
     const options = {
         layers: [layer],
         minwidth: 200,
-        minZoom: 2,
+        minZoom: 2.45,
         maxZoom: 18,
         maxBounds: bounds
     }
