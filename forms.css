@@ -1,0 +1,198 @@
+/* Style for label elements */
+
+h2
+{
+    font-family: 'Open Sans', sans-serif;
+    padding: 0;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+form{
+    font-family: 'Open Sans', sans-serif;
+    padding: 10px;
+    /*margin-top: 50%;*/
+}
+label
+{
+    font-weight: bold;
+}
+
+body
+{
+    overflow-y: hidden;
+}
+#fields {
+    width: 30%;
+    float: left;
+    margin-left: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+
+}
+
+select {
+    display: inline-block;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    background-color: #fff;
+}
+
+input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    margin-right: 10px;
+}
+
+#row {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+
+button {
+    display: inline-block;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    cursor: pointer;
+}
+.toggle-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-right: 16px;
+}
+
+.toggle-switch {
+    margin-left: 8px;
+}
+
+.toggle-switch {
+    display: inline-block;
+    position: relative;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch-input {
+    display: none;
+}
+
+.toggle-switch-label {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 34px;
+    background-color: #ccc;
+    border-radius: 1em;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.toggle-switch-input:checked + .toggle-switch-label {
+    background-color: #007bff;
+}
+
+.toggle-switch-label::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 1em;
+    background-color: #fff;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out;
+}
+
+.toggle-switch-input:checked + .toggle-switch-label::after {
+    transform: translateX(26px);
+}
+
+.tooltip-container {
+    position: relative;
+    flex-direction: column;
+    display: flex;
+    /*align-items: center;*/
+}
+
+.tooltip-content {
+    z-index: 30000;
+    position: absolute;
+    top: 15px;
+    left: calc(50% - 75px);
+    width: 150px;
+    padding: 10px;
+    background-color: #fff;
+    color: #333;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s linear 0.2s, opacity 0.2s ease-out;
+}
+
+.tooltip-trigger-container:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+.tooltip-trigger-container {
+    position: relative;
+    display: block;
+}
+
+.tooltip-trigger {
+    font-size: 0.8em;
+    width: 10px;
+    height: 10px;
+    line-height: 10px;
+    display: inline-block;
+    margin-left: 5px;
+    font-weight: bold;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 50%;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease-out;
+}
+
+.tooltip-trigger:hover {
+    background-color: #333;
+    color: #fff;
+    z-index: 21602957;
+}
+
+.input-container input,
+.input-container button {
+    display: inline-block;
+    vertical-align: middle;
+}

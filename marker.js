@@ -13,8 +13,8 @@ export class MarkerManager {
     this.currentArg = args;
     this.markersLayer = L.layerGroup().addTo(this.map);
     this.markersInactiveLayer = L.layerGroup().addTo(this.map);
-    this.total = 0;
     this.active = [];
+    this.totalActive = this.active.length;
     this.chart = null;
     this.endDate = null;
     this.startDate = null;
@@ -26,7 +26,7 @@ export class MarkerManager {
     this.originalRadius = {};
     this.activeDepth = undefined;
     this.resetMap();
-    this.pulloutMenu();
+    // this.pulloutMenu();
     this.zoomedMarkers();
   }
 
@@ -124,7 +124,7 @@ export class MarkerManager {
           extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is online</span> </p>
           <p>Most recent reading: <span style='font-weight:bold'>${activeReading}<span> </p>
           <div id='testtype'><p> As of ${this.dateString} ${elementTime} UTC</p>
-          <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
+          <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
           <p> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${element[site_name]}'>View Raw</a></p>
           </div>`);
 
@@ -155,7 +155,7 @@ export class MarkerManager {
 
           // Update the content of the data popup with information about the site and the most recent reading
           dataPopup.setContent(`<div style='text-align:center'><p>Updated: <span style='font-weight:bold'>${this.dateString} ${elementTime} UTC<span></p>
-          <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_long]}, ${element[site_lat]}) </p>
+          <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_long]}, ${element[site_lat]}) </p>
           <p>Latest: <span style='font-weight:bold'>${activeReading}</span></p></div>`)
 
           // Open the data popup on the map
@@ -270,7 +270,7 @@ export class MarkerManager {
             extendedPopup.setContent(`
               <p><span style='font-weight:bold'>Site is currently offline</span> </p>
               <div id='testtype'><p> ${site} has been active within the past thirty days. <span style='font-weight:bold'>${this.dateString}</span> is when the most recent reading occured.</p>
-              <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
+              <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
               <p> <a href=${avgUrl}>View Raw</a></p>
               </div>`);
 
@@ -291,7 +291,7 @@ export class MarkerManager {
             // If there is no data in the chart data array, update the content of the extended popup with information about the inactive site and the lack of data
             extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
             <!-- <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p> -->
-            <p> Site: <a href='aeronet.gsfc.nasa.gov/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
+            <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
             extendedPopup.openOn(this.map)
           }
 
@@ -491,31 +491,31 @@ export class MarkerManager {
     this.map.addControl(new customControl());
   }
 
-  pulloutMenu() {
-    var menuControl = L.Control.extend({
-      options: {
-        position: 'topright'
-      },
-      onAdd: function () {
-        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        container.innerHTML = '<div class="menu-header"><button id="menu-toggle"><p class="filter-title">Filters</p></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
-        var menuContent = container.querySelector('.menu-content');
-        menuContent.style.display = 'none';
-        L.DomEvent.disableClickPropagation(container);
-        L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
-          var menuContent = container.querySelector('.menu-content');
-          if (menuContent.style.display === 'none') {
-            menuContent.style.display = 'block';
-          } else {
-            menuContent.style.display = 'none';
-          }
-          L.DomUtil.hasClass(container, 'menu-open') ? L.DomUtil.removeClass(container, 'menu-open') : L.DomUtil.addClass(container, 'menu-open');
-        });
-        return container;
-      }
-    });
-    this.map.addControl(new menuControl());
-  }
+  // pulloutMenu() {
+  //   var menuControl = L.Control.extend({
+  //     options: {
+  //       position: 'topright'
+  //     },
+  //     onAdd: function () {
+  //       var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+  //       container.innerHTML = '<div class="menu-header"><button id="menu-toggle"><p class="filter-title">Filters</p></button></div><div class="menu-content">' + document.getElementById('form').innerHTML + '</div>';
+  //       var menuContent = container.querySelector('.menu-content');
+  //       menuContent.style.display = 'none';
+  //       L.DomEvent.disableClickPropagation(container);
+  //       L.DomEvent.on(container.querySelector('.menu-header'), 'click', function () {
+  //         var menuContent = container.querySelector('.menu-content');
+  //         if (menuContent.style.display === 'none') {
+  //           menuContent.style.display = 'block';
+  //         } else {
+  //           menuContent.style.display = 'none';
+  //         }
+  //         L.DomUtil.hasClass(container, 'menu-open') ? L.DomUtil.removeClass(container, 'menu-open') : L.DomUtil.addClass(container, 'menu-open');
+  //       });
+  //       return container;
+  //     }
+  //   });
+  //   this.map.addControl(new menuControl());
+  // }
 
   updateDateString(date)
   {

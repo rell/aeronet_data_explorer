@@ -1,45 +1,39 @@
+#map-container {
+    display: inline-flex;
+    width: 100%;
+}
 html,
 body,
 #map {
+    height: 100vh;
+    width: 100%;
+    float: left;
+}
+body {
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
+}
+p
+{
+    font-family: 'Open Sans', sans-serif;
 }
 
-.row {
-    height: 100%;
+.leaflet-container{
+    background: #FFF;
 }
-
 .popup {
     height: 100%;
 }
 
 svg.leaflet-attribution-flag
 {
-  display: none !important;
+    display: none !important;
 }
 
 
 #form {
     display: flex;
     /*height: auto;*/
-}
-#fields {
-    display: flex;
-    flex-direction: column;
-    margin: 10px
-}
-/*.row {*/
-/*    display: flex;*/
-/*    flex-wrap: wrap;*/
-/*}*/
-
-/*.column {*/
-/*    flex: 1;*/
-/*}*/
-.leaflet-container{
-    background: #FFF;
 }
 
 .custom-icon {
@@ -71,9 +65,6 @@ svg.leaflet-attribution-flag
 .leaflet-popup-tip-container {
 }
 
-
-
-
 .custom-popup .leaflet-popup-content-wrapper a {
     color:rgba(255,0,0,0.1);
 }
@@ -104,7 +95,6 @@ svg.leaflet-attribution-flag
     position: absolute;
     top: 10px;
     right: 10px;
-
     border: 1px solid #ccc;
     padding: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -127,7 +117,7 @@ svg.leaflet-attribution-flag
 }
 
 .legend {
-    border-radius: 10px;
+    border-radius: 0.25rem;
     background-color:rgba(255, 255, 255, 0.6);;
     margin-top: 10px;
     /*opacity: .8;*/
@@ -177,12 +167,6 @@ svg.leaflet-attribution-flag
     background: rgb(255, 255, 255, 0.5);
 }
 
-/*.leaflet-popup-tip-container .leaflet-popup-tip {*/
-/*    width: 0px;*/
-/*    height: 0px;*/
-/*    margin: -5px auto 0;*/
-
-/*}*/
 #menu {
     position: absolute;
     top: 50%;
@@ -196,7 +180,6 @@ svg.leaflet-attribution-flag
     z-index: 1000;
 }
 
-/* Styles for the menu when it's open */
 #menu.menu-open {
     right: 250px;
 }
@@ -227,7 +210,6 @@ svg.leaflet-attribution-flag
     background: rgba(255, 255, 255, 0.5);;
 }
 
-/* Styles for the menu content when it's open */
 #menu.menu-open .menu-content {
     display: block;
 }
@@ -241,3 +223,4 @@ div#currentTime {
     text-align: CENTER;
     FONT-SIZE: SMALL;
 }
+

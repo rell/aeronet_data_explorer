@@ -1,4 +1,4 @@
-import {getSitesData, latestOfSet, validateTime} from './data.js';
+import {getSitesData, latestOfSet} from './data.js';
 import {updateAOD, updateTime, getStartEndDateTime} from './components.js';
 import {initDropdown} from './init.js';
 
@@ -9,30 +9,24 @@ export class FieldInitializer {
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
         this.radiusIncreased = false;
-        // this.startDate = null;
         this.avg = 10;
         this.map = map;
         this.markerLayer = markerLayer;
-        // this.dateString = stringIt(this.dateTime) // TODO: Return the string to be put into the date variable upon updating -- possible
         this.dateTime = dateTime;
-
-        // TODO: SET DATE FOR CHART DATA TO UTILIZE
         this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
         this.markerLayer.startDate = this.setChartStart(this.dateTime)
-
         this.aodFieldData = [];
         this.siteFieldData = [];
         this.hourTolerance = 1;
         this.recentlySetInactive = true;
         this.siteCurrentlyZoomed = false
-        this.previouslySetTime = false;
         this.daily = false
+        this.toggleInactive = null
         this.init();
     }
 
-    // This method initializes the dropdown menus for selecting the optical depth, AERONET site, and data type,
-    // as well as the Flatpickr date/time picker and the radio buttons for toggling inactive stations.
     init() {
+        let toolTipContent;
         this.radiusIncreased = false;
 
         this.aodFieldData = Object.keys(this.siteData[0])
@@ -53,49 +47,92 @@ export class FieldInitializer {
 
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
-        const aodDisc = 'Select wavelength for AOD';
-        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false);
+        const aodDisc = 'Select wavelength';
+        toolTipContent = 'Select a preferred wavelength for the aerosol optical depth.'
+        const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false, 'aod-fields', toolTipContent);
 
         placeholder = 'Select'
-        const siteDisc = 'AEROnet Site: ';
-        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true);
+        const siteDisc = 'Site';
+        toolTipContent =  'This option allows you to select an AERONET site of interest, and you will be directed to that specific point.'
+        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent);
 
 
-        const datatypeOpt = [{value: 10, label: 'realtime'}, {value: 20, label: 'daily average'}];
+        const datatypeOpt = [{value: 10, label: 'Realtime'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
+        toolTipContent =  '<strong>Realtime:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
+            '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
         placeholder = 'realtime'
-        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false);
+        const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields', toolTipContent);
 
         // Initialize Flatpickr date/time picker.
-        const calender = `<form><label for='date-input'>Select Day/Time </label>
-                          <input type='text' id='date-input' name='date' data-toggle='flatpickr'>
-                          <button type='button' id='submitButton'>Submit</button></form>`;
+        const calender = `<div class="tooltip-container">
+                                 <div id='row'> <label for="date-input">Select Day/Time</label>
+                                 <div class="tooltip-trigger-container">
+                                 <span class="tooltip-trigger">?</span>
+                                 <div class="tooltip-content">
+                                 <p>This option allows you to select a date and time relative to your local time. <strong>Time is converted from local to UTC.</strong></p>
+                                 </div>
+                                 </div>
+                                 </div>
+                                 <div class="input-container">
+                                 <input type="text" id="date-input" name="date" data-toggle="flatpickr">
+                                 <button type="button" id="submitButton">Submit</button>
+                                 </div>
+                                 </div>`;
 
-        // Initialize radio buttons for toggling inactive stations.
-        const inactiveOff = `<form><label for='hide-inacive'>Inactive station:</label>
-                             <input type="radio" id="hide-inactive" name="hide_marker" value="no">
-                             <label for="hide-inacive">Hide</label>
-                             <input type="radio" id="show-inactive" name="hide_marker" value="yes" checked>
-                             <label for="show-inacive">Show</label></form>`;
+        // Initialize toggle for toggling inactive stations.
+        const inactiveOff = `<div class="tooltip-container">
+                                 <div id='row'> <label for="toggle-inactive">Inactive Sites</label>
+                                 <div class="tooltip-trigger-container">
+                                 <span class="tooltip-trigger">?</span>
+                                 <div class="tooltip-content">
+                                 <p>This option allows you to toggle inactive sites on and off.</p>
+                                 </div>
+                                 </div>
+                                 </div>
+                                 <label class="toggle-switch">
+                                 <input type="checkbox" id="toggle-inactive" name="toggle-inactive" class="toggle-switch-input" checked>
+                                    <span class="toggle-switch-label"></span>
+                                 </label>
+                                 </div>`
 
         // Set the HTML for the fields container.
         const fieldsContainer = document.getElementById('fields');
-        fieldsContainer.innerHTML = dropdownAOD + dropdownSite + dropdownData + calender + inactiveOff;
+        const header = document.createElement("h2");
+        header.textContent = "Filters";
 
-        // Add event listeners to the dropdown menus, date/time picker, and radio buttons.
+        // Insert the header before the form element
+        fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
+
+        fieldsContainer.innerHTML = `${header.outerHTML}<form>${dropdownAOD}${dropdownSite}${dropdownData}${calender}${inactiveOff}</form>`;
+
+        // Append the fields container to the map container
+        const mapContainer = document.getElementById('map-container');
+        mapContainer.appendChild(fieldsContainer);
+
         const aodDropdownElm = document.getElementById('optical-depth-dropdown');
         aodDropdownElm.addEventListener('change', event => {
-            // Update the average dropdown and API arguments
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             if (this.markerLayer.currentZoom > 5)
             {
                 this.markerLayer.changeMarkerRadius(null)
-                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom)
+                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+                this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
+                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+                    if (layer instanceof L.CircleMarker) {
+                        if (this.markerLayer.currentZoom > 4) {
+                            layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
+                        } else {
+                            layer.setStyle({ stroke: false });
+                        }
+                    }
+                });
+
             }
             this.recentlySetInactive = true
-            updateTime(this.dateTime, this.daily);
+            this.setToggleValue(this.recentlySetInactive)
         });
 
         // realtime and daily field
@@ -117,10 +154,26 @@ export class FieldInitializer {
             this.recentlySetInactive = true;
             if (this.siteCurrentlyZoomed)
             {
-                this.markerLayer.changeMarkerRadius(15)
+                if (this.markerLayer.currentZoom > 5)
+                {
+                    this.markerLayer.changeMarkerRadius(null)
+                    this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+                    this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
+                        const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+                        if (layer instanceof L.CircleMarker) {
+                            if (this.markerLayer.currentZoom > 4) {
+                                layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
+                            } else {
+                                layer.setStyle({ stroke: false });
+                            }
+                        }
+                    });
+
+                }
             }else {
                 this.map.setView([0,0],3);
             }
+            // this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
         });
 
@@ -146,7 +199,6 @@ export class FieldInitializer {
                     this.markerLayer.changeMarkerRadius(25)
                 }
                 this.siteCurrentlyZoomed = true;
-                console.log(this.radiusIncreased)
                 this.map.setView([result['Latitude(decimal_degrees)'], result['Longitude(decimal_degrees)']], 15);
             }
         }
@@ -166,9 +218,8 @@ export class FieldInitializer {
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
             const dateString = document.getElementById('date-input').value;
-            this.dateTime = getStartEndDateTime(dateString)
+            this.dateTime = getStartEndDateTime(dateString, this.hourTolerance)
             this.updateApiArgs();
-            this.previouslySetTime = true;
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
@@ -178,28 +229,69 @@ export class FieldInitializer {
             {
                 this.markerLayer.changeMarkerRadius(null)
                 this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+                this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
+                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+                    if (layer instanceof L.CircleMarker) {
+                        if (this.markerLayer.currentZoom > 4) {
+                            layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
+                        } else {
+                            layer.setStyle({ stroke: false });
+                        }
+                    }
+                });
             }
+                // this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
         });
 
-        const toggleInactiveOff = document.getElementById('hide-inactive');
-        toggleInactiveOff.addEventListener('click', event => {
-            if (this.recentlySetInactive)
-            {
+        this.toggleInactive = document.getElementById('toggle-inactive');
+
+        this.toggleInactive.addEventListener('click', (event) => {
+            const isChecked = event.target.checked;
+            if (isChecked) {
+                this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
+                this.recentlySetInactive = true;
+                if (this.markerLayer.currentZoom > 5) {
+                    this.markerLayer.changeMarkerRadius(null)
+                    this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+                    this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
+                        if (layer instanceof L.CircleMarker) {
+                            if (this.markerLayer.currentZoom > 4) {
+                                layer.setStyle({stroke: true, weight: 3, opacity: opacity});
+                            } else {
+                                layer.setStyle({stroke: false});
+                            }
+                        }
+                    });
+                }
+            } else {
                 this.markerLayer.clearInactiveMarkers();
                 this.recentlySetInactive = false;
             }
         });
 
-        const toggleInactiveOn = document.getElementById('show-inactive');
-        toggleInactiveOn.addEventListener('click', event => {
-            if(!this.recentlySetInactive)
-            {
-                this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
-                this.recentlySetInactive = true;
-            }
+        const tooltipTrigger = document.querySelector('.tooltip-trigger');
+        const tooltip = document.querySelector('.tooltip');
+
+        tooltipTrigger.addEventListener('mouseover', () => {
+            tooltip.style.top = `${tooltipTrigger.offsetTop + tooltipTrigger.offsetHeight}px`;
+            tooltip.style.left = `${tooltipTrigger.offsetLeft}px`;
         });
 
+        tooltipTrigger.addEventListener('mouseout', () => {
+            tooltip.style.top = null;
+            tooltip.style.left = null;
+        });
+    }
+
+    setToggleValue(value) {
+        this.toggleInactive.checked = value;
+        if (value === false) {
+            this.markerLayer.clearInactiveMarkers();
+        } else if (value === true) {
+            this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
+        }
     }
     setChartStart() {
         let date;
@@ -225,7 +317,7 @@ export class FieldInitializer {
         return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
     }
 
-    // updates the API arguments used to retrieve AERO-NET site data based on the selected date and time
+    // updates the API arguments used to retrieve AERONET site data based on the selected date and time
     updateApiArgs()
     {
         let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
