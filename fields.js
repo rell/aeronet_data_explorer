@@ -151,7 +151,6 @@ export class FieldInitializer {
             }
 
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
-            this.recentlySetInactive = true;
             if (this.siteCurrentlyZoomed)
             {
                 if (this.markerLayer.currentZoom > 5)
@@ -168,12 +167,13 @@ export class FieldInitializer {
                             }
                         }
                     });
-
                 }
+
             }else {
                 this.map.setView([0,0],3);
             }
-            // this.setToggleValue(this.recentlySetInactive)
+            this.recentlySetInactive = true;
+            this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
         });
 
@@ -224,7 +224,6 @@ export class FieldInitializer {
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
-            this.recentlySetInactive = true;
             if (this.markerLayer.currentZoom > 5)
             {
                 this.markerLayer.changeMarkerRadius(null)
@@ -240,7 +239,8 @@ export class FieldInitializer {
                     }
                 });
             }
-                // this.setToggleValue(this.recentlySetInactive)
+            this.recentlySetInactive = true;
+            this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
         });
 
