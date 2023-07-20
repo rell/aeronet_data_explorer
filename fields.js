@@ -5,6 +5,7 @@ import {initDropdown} from './init.js';
 // This class is responsible for initializing and updating the various fields in the user interface
 export class FieldInitializer {
     constructor(siteData, allSiteData, opticalDepth, map, markerLayer, dateTime) {
+        this.dateString = null
         this.siteData = siteData;
         this.allSiteData = allSiteData;
         this.opticalDepth = opticalDepth;
@@ -116,7 +117,7 @@ export class FieldInitializer {
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
-            this.updateMarker()
+            this.normalizeMarkers()
             this.recentlySetInactive = true
             this.setToggleValue(this.recentlySetInactive)
         });
@@ -141,9 +142,7 @@ export class FieldInitializer {
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             if (this.siteCurrentlyZoomed)
             {
-                this.markerLayer.markersLayer.clearLayers();
-                this.markerLayer.markersInactiveLayer.clearLayers();
-                this.updateMarker()
+                this.normalizeMarkers()
             }else {
 
                 this.map.setView([0,0],3);
@@ -193,42 +192,71 @@ export class FieldInitializer {
             defaultDate: now,
         });
         const updateFlatpickrOptions = (daily) => {
-            if (daily) {
-                fp = flatpickr('#date-input', {
-                    utc: true,
-                    enableTime: !daily,
-                    dateFormat: 'Z',
-                    altInput: true,
-                    altFormat: 'Y-m-d',
-                    minDate: new Date(1993, 0, 1),
-                    maxDate: now,
-                    defaultDate: now,
-                });
+
+            if (this.dateString === null) {
+                if (daily) {
+                    fp = flatpickr('#date-input', {
+                        utc: true,
+                        enableTime: !daily,
+                        dateFormat: 'Z',
+                        altInput: true,
+                        altFormat: 'Y-m-d',
+                        minDate: new Date(1993, 0, 1),
+                        maxDate: now,
+                        defaultDate: now,
+                    });
+                } else {
+                    fp = flatpickr('#date-input', {
+                        utc: true,
+                        enableTime: !daily,
+                        dateFormat: 'Z',
+                        altInput: true,
+                        altFormat: 'Y-m-d h:i K',
+                        minDate: new Date(1993, 0, 1),
+                        maxDate: now,
+                        defaultDate: now,
+                    });
+                }
             }else{
-                fp = flatpickr('#date-input', {
-                    utc: true,
-                    enableTime: !daily,
-                    dateFormat: 'Z',
-                    altInput:true,
-                    altFormat: 'Y-m-d `h:i K',
-                    minDate: new Date(1993, 0, 1),
-                    maxDate: now,
-                    defaultDate: now,
-                });
+                if (daily) {
+                    let year,day,month
+                    this.dateTime.length === 3 ? [year, month, day] = this.dateTime[1].map(Number) : [year, month, day] = this.dateTime[0].map(Number)
+                    fp = flatpickr('#date-input', {
+                        utc: true,
+                        enableTime: !daily,
+                        dateFormat: 'Z',
+                        altInput: true,
+                        altFormat: 'Y-m-d',
+                        minDate: new Date(1993, 0, 1),
+                        maxDate: now,
+                        defaultDate: new Date(year, month-1, day),
+                    });
+                } else {
+                    fp = flatpickr('#date-input', {
+                        utc: true,
+                        enableTime: !daily,
+                        dateFormat: 'Z',
+                        altInput: true,
+                        altFormat: 'Y-m-d h:i K',
+                        minDate: new Date(1993, 0, 1),
+                        maxDate: now,
+                        defaultDate: new Date(this.dateString),
+                    });
+                }
             }
 
         }
 
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
-            const dateString = document.getElementById('date-input').value;
-            this.dateTime = getStartEndDateTime(dateString, this.hourTolerance)
+            this.dateString  = document.getElementById('date-input').value;
+            this.dateTime = getStartEndDateTime(this.dateString, this.hourTolerance)
             this.updateApiArgs();
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
-            this.updateMarker()
+            this.normalizeMarkers()
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
@@ -240,7 +268,7 @@ export class FieldInitializer {
             if (isChecked) {
                 this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
                 this.recentlySetInactive = true;
-                this.updateMarker()
+                this.normalizeMarkers()
             } else {
                 this.markerLayer.clearInactiveMarkers();
                 this.recentlySetInactive = false;
@@ -263,11 +291,6 @@ export class FieldInitializer {
 
     setToggleValue(value) {
         this.toggleInactive.checked = value;
-        // if (value === false) {
-        //     this.markerLayer.clearInactiveMarkers();
-        // } else if (value === true) {
-        //     this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
-        // }
     }
     setChartStart() {
         let date;
@@ -294,11 +317,10 @@ export class FieldInitializer {
     }
 
 
-    updateMarker()
+    normalizeMarkers()
     {
         if (this.markerLayer.currentZoom > 5)
         {
-            // this.markerLayer.changeMarkerRadius(null)
             this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
             this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
                 const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
