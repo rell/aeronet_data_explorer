@@ -80,6 +80,7 @@ export class FieldInitializer {
                                  </div>
                                  </div>`;
 
+
         // Initialize toggle for toggling inactive stations.
         const inactiveOff = `<div class="tooltip-container">
                                  <div id='row'> <label for="toggle-inactive">Inactive Sites</label>
@@ -92,7 +93,7 @@ export class FieldInitializer {
                                  </div>
                                  <label class="toggle-switch">
                                  <input type="checkbox" id="toggle-inactive" name="toggle-inactive" class="toggle-switch-input" checked>
-                                    <span class="toggle-switch-label"></span>
+                                 <span class="toggle-switch-label"></span>
                                  </label>
                                  </div>`
 
@@ -115,22 +116,7 @@ export class FieldInitializer {
             this.opticalDepth = event.target.value;
             updateAOD(this.opticalDepth);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
-            if (this.markerLayer.currentZoom > 5)
-            {
-                this.markerLayer.changeMarkerRadius(null)
-                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
-                this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
-                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
-                    if (layer instanceof L.CircleMarker) {
-                        if (this.markerLayer.currentZoom > 4) {
-                            layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
-                        } else {
-                            layer.setStyle({ stroke: false });
-                        }
-                    }
-                });
-
-            }
+            this.updateMarker()
             this.recentlySetInactive = true
             this.setToggleValue(this.recentlySetInactive)
         });
@@ -144,32 +130,22 @@ export class FieldInitializer {
             if(parseInt(event.target.value) === 10)
             {
                 this.daily = false
+                updateFlatpickrOptions(this.daily);
             }
             else if (parseInt(event.target.value) === 20)
             {
                 this.daily = true
+                updateFlatpickrOptions(this.daily);
             }
 
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             if (this.siteCurrentlyZoomed)
             {
-                if (this.markerLayer.currentZoom > 5)
-                {
-                    this.markerLayer.changeMarkerRadius(null)
-                    this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
-                    this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
-                        const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
-                        if (layer instanceof L.CircleMarker) {
-                            if (this.markerLayer.currentZoom > 4) {
-                                layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
-                            } else {
-                                layer.setStyle({ stroke: false });
-                            }
-                        }
-                    });
-                }
-
+                this.markerLayer.markersLayer.clearLayers();
+                this.markerLayer.markersInactiveLayer.clearLayers();
+                this.updateMarker()
             }else {
+
                 this.map.setView([0,0],3);
             }
             this.recentlySetInactive = true;
@@ -204,7 +180,9 @@ export class FieldInitializer {
         }
 
         const now = new Date();
-        flatpickr('#date-input', {
+        // initialize flatpickr with initial options
+
+        let fp = flatpickr('#date-input', {
             utc: true,
             enableTime: true,
             dateFormat: 'Z',
@@ -214,6 +192,32 @@ export class FieldInitializer {
             maxDate: now,
             defaultDate: now,
         });
+        const updateFlatpickrOptions = (daily) => {
+            if (daily) {
+                fp = flatpickr('#date-input', {
+                    utc: true,
+                    enableTime: !daily,
+                    dateFormat: 'Z',
+                    altInput: true,
+                    altFormat: 'Y-m-d',
+                    minDate: new Date(1993, 0, 1),
+                    maxDate: now,
+                    defaultDate: now,
+                });
+            }else{
+                fp = flatpickr('#date-input', {
+                    utc: true,
+                    enableTime: !daily,
+                    dateFormat: 'Z',
+                    altInput:true,
+                    altFormat: 'Y-m-d `h:i K',
+                    minDate: new Date(1993, 0, 1),
+                    maxDate: now,
+                    defaultDate: now,
+                });
+            }
+
+        }
 
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
@@ -224,47 +228,19 @@ export class FieldInitializer {
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
             this.siteData = await getSitesData(this.api_args, this.avg, this.dateTime);
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
-            if (this.markerLayer.currentZoom > 5)
-            {
-                this.markerLayer.changeMarkerRadius(null)
-                this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
-                this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
-                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
-                    if (layer instanceof L.CircleMarker) {
-                        if (this.markerLayer.currentZoom > 4) {
-                            layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
-                        } else {
-                            layer.setStyle({ stroke: false });
-                        }
-                    }
-                });
-            }
+            this.updateMarker()
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
         });
 
         this.toggleInactive = document.getElementById('toggle-inactive');
-
         this.toggleInactive.addEventListener('click', (event) => {
             const isChecked = event.target.checked;
             if (isChecked) {
                 this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
                 this.recentlySetInactive = true;
-                if (this.markerLayer.currentZoom > 5) {
-                    this.markerLayer.changeMarkerRadius(null)
-                    this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
-                    const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
-                    this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
-                        if (layer instanceof L.CircleMarker) {
-                            if (this.markerLayer.currentZoom > 4) {
-                                layer.setStyle({stroke: true, weight: 3, opacity: opacity});
-                            } else {
-                                layer.setStyle({stroke: false});
-                            }
-                        }
-                    });
-                }
+                this.updateMarker()
             } else {
                 this.markerLayer.clearInactiveMarkers();
                 this.recentlySetInactive = false;
@@ -287,11 +263,11 @@ export class FieldInitializer {
 
     setToggleValue(value) {
         this.toggleInactive.checked = value;
-        if (value === false) {
-            this.markerLayer.clearInactiveMarkers();
-        } else if (value === true) {
-            this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
-        }
+        // if (value === false) {
+        //     this.markerLayer.clearInactiveMarkers();
+        // } else if (value === true) {
+        //     this.markerLayer.showInactiveMarkers(this.allSiteData, this.opticalDepth);
+        // }
     }
     setChartStart() {
         let date;
@@ -317,6 +293,25 @@ export class FieldInitializer {
         return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
     }
 
+
+    updateMarker()
+    {
+        if (this.markerLayer.currentZoom > 5)
+        {
+            // this.markerLayer.changeMarkerRadius(null)
+            this.markerLayer.changeMarkerRadius(this.markerLayer.currentZoom * 1.5)
+            this.markerLayer.markersInactiveLayer.eachLayer((layer) => {
+                const opacity = this.markerLayer.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+                if (layer instanceof L.CircleMarker) {
+                    if (this.markerLayer.currentZoom > 4) {
+                        layer.setStyle({ stroke: true, weight: 3, opacity:opacity });
+                    } else {
+                        layer.setStyle({ stroke: false });
+                    }
+                }
+            });
+        }
+    }
     // updates the API arguments used to retrieve AERONET site data based on the selected date and time
     updateApiArgs()
     {

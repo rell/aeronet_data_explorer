@@ -7,7 +7,7 @@ export class MarkerManager {
   constructor(map, args, fieldsClass) {
     this.maxRadius = 30;
     this.fieldsClass = fieldsClass;
-    this.defaultRadius = 4;
+    this.defaultRadius = 8;
     this.minRadius = this.defaultRadius;
     this.map = map;
     this.currentArg = args;
@@ -48,7 +48,6 @@ export class MarkerManager {
       {
         // Add the site name of the current element to the active array (used to create inactive sites)
         this.active.push(element[site_name].toLowerCase());
-
         // Create a new circle marker for the current element
         const marker = L.circleMarker([element[site_lat], element[site_long]],
             {
@@ -58,7 +57,7 @@ export class MarkerManager {
               riseOnHover: true,
               fillColor: setColor(element[activeDepth]), // Set the fill color of the marker using a setColor function
               fillOpacity: .85,
-              radius: parseFloat(element[activeDepth])+4, // Set the radius of the marker using the active depth value of the current element
+              radius: parseFloat(element[activeDepth])+this.defaultRadius, // Set the radius of the marker using the active depth value of the current element
             });
 
         // Create a new extended popup for the marker
@@ -124,7 +123,7 @@ export class MarkerManager {
           extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is online</span> </p>
           <p>Most recent reading: <span style='font-weight:bold'>${activeReading}<span> </p>
           <div id='testtype'><p> As of ${this.dateString} ${elementTime} UTC</p>
-          <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
+          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
           <p> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${element[site_name]}'>View Raw</a></p>
           </div>`);
 
@@ -155,7 +154,7 @@ export class MarkerManager {
 
           // Update the content of the data popup with information about the site and the most recent reading
           dataPopup.setContent(`<div style='text-align:center'><p>Updated: <span style='font-weight:bold'>${this.dateString} ${elementTime} UTC<span></p>
-          <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_long]}, ${element[site_lat]}) </p>
+          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a>  (${element[site_long]}, ${element[site_lat]}) </p>
           <p>Latest: <span style='font-weight:bold'>${activeReading}</span></p></div>`)
 
           // Open the data popup on the map
@@ -196,7 +195,7 @@ export class MarkerManager {
               riseOnHover:true,
               fillColor: setColor('inactive'), // Set the fill color of the marker using a setColor function
               fillOpacity: 0.40,
-              radius: 4
+              radius: this.defaultRadius
             });
 
         // Create a new data popup for the marker
@@ -270,7 +269,7 @@ export class MarkerManager {
             extendedPopup.setContent(`
               <p><span style='font-weight:bold'>Site is currently offline</span> </p>
               <div id='testtype'><p> ${site} has been active within the past thirty days. <span style='font-weight:bold'>${this.dateString}</span> is when the most recent reading occured.</p>
-              <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
+              <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a>  (${element[site_lat]},${element[site_long]})</p>
               <p> <a href=${avgUrl}>View Raw</a></p>
               </div>`);
 
@@ -291,7 +290,7 @@ export class MarkerManager {
             // If there is no data in the chart data array, update the content of the extended popup with information about the inactive site and the lack of data
             extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
             <!-- <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p> -->
-            <p> Site: <a href='/new_web/photo_db_v3/new_web/photo_blank/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
+            <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
             extendedPopup.openOn(this.map)
           }
 
@@ -324,9 +323,6 @@ export class MarkerManager {
     this.addMarker(currentSiteData, opticalDepth);
     this.addInactiveMarker(allSiteData, opticalDepth);
   }
-  // moveInactiveMarkersToBack() {
-  //   this.markersInactiveLayer.bringToBack();
-  // }
 
   changeMarkerRadius(args) {
     if(args !== null)
@@ -389,7 +385,6 @@ export class MarkerManager {
   zoomedMarkers() {
     // Add a listener to the map for the 'zoomend' event
     this.map.on('zoomend', () => {
-
       const zoomLevel = this.map.getZoom();
       this.currentZoom = this.map.getZoom();
       if (this.currentZoom < this.previousZoom) {
