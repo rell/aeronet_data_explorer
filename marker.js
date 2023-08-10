@@ -469,8 +469,21 @@ export class MarkerManager {
       const chartCanvas = document.createElement('canvas');
       chartCanvas.id = 'graph';
       chartCanvas.style.display = 'block'
-      chartCanvas.width = 800;
-      chartCanvas.height = 200;
+
+      // Fixed: Adjust size of chart based on screen size
+      const maxWidth = 1300;
+      const width = 800
+      const height = 200
+      // const width = Math.min(maxWidth, window.innerWidth);
+      // const height = (width * 200) / 800;
+      const screenSizeFactor = window.innerWidth <= maxWidth ? .5 : 1;
+
+      const adjustedWidth = width * screenSizeFactor;
+      const adjustedHeight = height * screenSizeFactor;
+
+      chartCanvas.width = adjustedWidth;
+      chartCanvas.height = adjustedHeight
+      // ======================
 
       const chart = drawGraph(chartData, chartCanvas);
 

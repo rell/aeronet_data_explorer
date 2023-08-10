@@ -49,7 +49,6 @@ export class FieldInitializer {
             .sort((a, b) => a.value.localeCompare(b.value));
         // this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label: `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`}))
         //     .sort((a, b) => a.value.localeCompare(b.value));
-        console.log(this.siteFieldData)
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
         const aodDisc = 'Select wavelength';

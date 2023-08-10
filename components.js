@@ -99,7 +99,7 @@ export function updateTime(dateTime, daily = false) {
         });
 
         const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute}`;
-        currentTimeDiv.innerHTML = `${dateString} (${timeString}) <strong>UTC</strong>`;
+        currentTimeDiv.innerHTML = `<strong>${dateString}</strong> (${timeString}) <strong>UTC</strong>`;
     } else if (daily) {
         const dateString = new Date(Date.UTC(year, month-1, day+1)).toLocaleString('en-US', {
             month: 'long',
