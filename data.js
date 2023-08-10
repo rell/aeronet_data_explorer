@@ -23,6 +23,7 @@ export async function getAllSites(year)
 
         const data = response.split(`,${year}`)[1] // CSV
         const objs = await Papa.parse(data, config) // Avg for building js objects was ~7 ms
+        console.log(objs.data)
         return objs.data
     } catch (error) {
         console.error(error);

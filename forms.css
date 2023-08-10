@@ -2,10 +2,12 @@
 
 h2
 {
+    margin: 0;
     font-family: 'Open Sans', sans-serif;
-    padding: 0;
-    margin-top: 10px;
-    margin-bottom: 0;
+    width: 100%;
+    background-color: rgba(0, 123, 200, 1);
+    color: white;
+    padding: 10px;
 }
 form{
     font-family: 'Open Sans', sans-serif;
@@ -22,9 +24,13 @@ body
     overflow-y: hidden;
 }
 #fields {
-    width: 30%;
+    min-height: 300px;
+    min-width: 327px;
+    width: 10%;
     float: left;
-    margin-left: 20px;
+    /* Adjust later */
+    overflow: hidden;
+
 }
 
 label {
@@ -72,7 +78,7 @@ button {
     display: inline-block;
     border-radius: 0.25rem;
     padding: 0.5rem 1rem;
-    font-size: 1rem;
+    font-size: 1em;
     font-weight: bold;
     color: #fff;
     background-color: #007bff;

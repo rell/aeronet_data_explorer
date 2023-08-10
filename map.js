@@ -53,5 +53,4 @@ markerLayer.addInactiveMarker(all_site_data, optical_depth);
 const initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer, defaultDate);
 markerLayer.fieldsClass = initFields
 // set center and default zoom
-map.setView([0,0],3);
-
+map.setView([50,0],3.50);

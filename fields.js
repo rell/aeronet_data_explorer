@@ -42,25 +42,29 @@ export class FieldInitializer {
         });
 
         // Sort siteFieldData alphabetically in descending order.
-        const sitenames = this.allSiteData.map(obj => obj['Site_Name']);
-        this.siteFieldData = sitenames.map(element => ({ value: element, label: element}))
-            .sort((a, b) => a.value.localeCompare(b.value));
+        // const siteNames = this.allSiteData.map(obj => `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`);
+        // const siteValues = this.allSiteData.map(obj => `${obj['Site_Name']}`);
 
+        this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label:`${obj['Site_Name']}`}))
+            .sort((a, b) => a.value.localeCompare(b.value));
+        // this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label: `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`}))
+        //     .sort((a, b) => a.value.localeCompare(b.value));
+        console.log(this.siteFieldData)
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
         const aodDisc = 'Select wavelength';
-        toolTipContent = 'Select a preferred wavelength for the aerosol optical depth.'
+        toolTipContent = 'Select a preferred wavelength of aerosol optical depth.'
         const dropdownAOD = initDropdown('optical-depth-dropdown', this.aodFieldData, aodDisc, placeholder, false, 'aod-fields', toolTipContent);
 
         placeholder = 'Select'
         const siteDisc = 'Site';
-        toolTipContent =  'This option allows you to select an AERONET site of interest, and you will be directed to that specific point.'
-        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent);
+        toolTipContent =  'This option allows you to select and goto an AERONET site of interest.'
+        const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent,);
 
 
-        const datatypeOpt = [{value: 10, label: 'Realtime'}, {value: 20, label: 'Daily'}];
+        const datatypeOpt = [{value: 10, label: 'Real-time'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
-        toolTipContent =  '<strong>Realtime:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
+        toolTipContent =  '<strong>Real-time:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
             '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
         placeholder = 'realtime'
         const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields', toolTipContent);
@@ -84,7 +88,7 @@ export class FieldInitializer {
 
         // Initialize toggle for toggling inactive stations.
         const inactiveOff = `<div class="tooltip-container">
-                                 <div id='row'> <label for="toggle-inactive">Inactive Sites</label>
+                                 <div id='row'> <label for="toggle-inactive">Show Inactive Sites</label>
                                  <div class="tooltip-trigger-container">
                                  <span class="tooltip-trigger">?</span>
                                  <div class="tooltip-content">
@@ -101,7 +105,8 @@ export class FieldInitializer {
         // Set the HTML for the fields container.
         const fieldsContainer = document.getElementById('fields');
         const header = document.createElement("h2");
-        header.textContent = "Filters";
+        header.textContent = "Data Filters";
+        header.style.textAlign = 'center';
 
         // Insert the header before the form element
         fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
@@ -145,7 +150,7 @@ export class FieldInitializer {
                 this.normalizeMarkers()
             }else {
 
-                this.map.setView([0,0],3);
+                this.map.setView([50,0],3.50);
             }
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
@@ -232,6 +237,22 @@ export class FieldInitializer {
                         defaultDate: new Date(year, month-1, day),
                     });
                 } else {
+                    let newDate = new Date(this.dateString)
+                    if(this.dateString.split('T')[1] === '04:00:00.000Z')
+                    {
+                        newDate = new Date(this.dateString)
+
+                        if(this.dateTime.length === 2)
+                        {
+                            newDate.setHours(this.dateTime[1][1]);
+                            newDate.setMinutes(this.dateTime[1][3]);
+                        }
+                        else if (this.dateTime.length === 3)
+                        {
+                            newDate.setHours(this.dateTime[2][1]);
+                            newDate.setMinutes(this.dateTime[2][3]);
+                        }
+                    }
                     fp = flatpickr('#date-input', {
                         utc: true,
                         enableTime: !daily,
@@ -240,7 +261,7 @@ export class FieldInitializer {
                         altFormat: 'Y-m-d h:i K',
                         minDate: new Date(1993, 0, 1),
                         maxDate: now,
-                        defaultDate: new Date(this.dateString),
+                        defaultDate: newDate,
                     });
                 }
             }
@@ -250,7 +271,7 @@ export class FieldInitializer {
         document.getElementById('submitButton').addEventListener('click', async (event) => {
             // Get the selected date from Flatpickr
             this.dateString  = document.getElementById('date-input').value;
-            this.dateTime = getStartEndDateTime(this.dateString, this.hourTolerance)
+            this.dateTime = getStartEndDateTime(this.dateString, this.hourTolerance, this.daily, this.dateTime)
             this.updateApiArgs();
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
@@ -278,28 +299,33 @@ export class FieldInitializer {
         const tooltipTrigger = document.querySelector('.tooltip-trigger');
         const tooltip = document.querySelector('.tooltip');
 
-        tooltipTrigger.addEventListener('mouseover', () => {
-            tooltip.style.top = `${tooltipTrigger.offsetTop + tooltipTrigger.offsetHeight}px`;
-            tooltip.style.left = `${tooltipTrigger.offsetLeft}px`;
-        });
+        if (tooltip && tooltipTrigger) {
+            tooltipTrigger.addEventListener('mouseover', () => {
+                tooltip.style.top = `${tooltipTrigger.offsetTop + tooltipTrigger.offsetHeight}px`;
+                tooltip.style.left = `${tooltipTrigger.offsetLeft}px`;
+            });
 
-        tooltipTrigger.addEventListener('mouseout', () => {
-            tooltip.style.top = null;
-            tooltip.style.left = null;
-        });
+            tooltipTrigger.addEventListener('mouseout', () => {
+                tooltip.style.top = null;
+                tooltip.style.left = null;
+            });
+        } else {
+            console.error('Tooltip elements not found in the DOM');
+        }
     }
 
     setToggleValue(value) {
         this.toggleInactive.checked = value;
     }
     setChartStart() {
+        const daysToAvg = this.markerLayer.chartTimeLength
         let date;
         let startYear,startMonth,startDay,year,month,day;
         if (this.dateTime.length === 3)
         {
             [year, month, day] = this.dateTime[1].map(Number);
             date = new Date(year, month - 1, day);
-            date.setDate(date.getDate()-30);
+            date.setDate(date.getDate()-daysToAvg);
             startYear = date.getUTCFullYear();
             startMonth = date.getUTCMonth();
             startDay = date.getUTCDate();
@@ -308,7 +334,7 @@ export class FieldInitializer {
         {
             [year, month, day] = this.dateTime[0].map(Number);
             date = new Date(year, month - 1, day);
-            date.setDate(date.getDate()-30);
+            date.setDate(date.getDate()-daysToAvg);
             startYear = date.getUTCFullYear();
             startMonth = date.getUTCMonth()+1;
             startDay = date.getUTCDate();

@@ -8,6 +8,13 @@ body,
     height: 100vh;
     width: 100%;
     float: left;
+    min-height: 600px;
+    min-width: 300px;
+}
+
+#map{
+    background-color:#333333;
+
 }
 body {
     margin: 0;
@@ -118,7 +125,7 @@ svg.leaflet-attribution-flag
 
 .legend {
     border-radius: 0.25rem;
-    background-color:rgba(255, 255, 255, 0.6);;
+    background-color:rgba(255, 255, 255, 0.8);;
     margin-top: 10px;
     /*opacity: .8;*/
 }
@@ -162,9 +169,10 @@ svg.leaflet-attribution-flag
 
 }
 .leaflet-control-graph {
-    width: 98%;
+    width: 100%;
     height: auto;
-    background: rgb(255, 255, 255, 0.5);
+    background: rgb(255, 255, 255, 1);
+    border-radius: 10px;
 }
 
 #menu {
@@ -220,7 +228,22 @@ svg.leaflet-attribution-flag
     font-size: 15px;
 }
 div#currentTime {
-    text-align: CENTER;
-    FONT-SIZE: SMALL;
+    text-align: center;
+    font-size: small;
 }
-
+.button-container {
+    display: flex;
+}
+button#popupButton {
+    flex: 1;
+    width: 40%;
+    margin: 10px;
+    padding: 5px;
+    text-decoration: none;
+    color: wheat;
+}
+button#popupButton a{
+    width: 10px;
+    text-decoration: none;
+    color: white;
+}

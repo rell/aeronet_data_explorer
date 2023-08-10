@@ -1,5 +1,5 @@
 // Function to create a color scale for mapping data values to colors
-function  setColorScale()
+function setColorScale()
 {
     return d3.scaleLinear()
         .domain([0, (1/6), ((1/6)*2), ((1/6)*3), ((1/6)*4), ((1/6)*5), 1])
@@ -83,7 +83,6 @@ export function updateTime(dateTime, daily = false) {
     {
         [year, month, day] = dateTime[0].map(Number);
         [previousHr, hour, bufferHr, minute] = dateTime[1];
-
     }
     else if (dateTime.length === 3)
     {
@@ -99,8 +98,8 @@ export function updateTime(dateTime, daily = false) {
             year: 'numeric'
         });
 
-        const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute} UTC`;
-        currentTimeDiv.innerHTML = `${dateString} (${timeString})`;
+        const timeString = `${previousHr}:${minute} &mdash; ${hour}:${minute}`;
+        currentTimeDiv.innerHTML = `${dateString} (${timeString}) <strong>UTC</strong>`;
     } else if (daily) {
         const dateString = new Date(Date.UTC(year, month-1, day+1)).toLocaleString('en-US', {
             month: 'long',
@@ -124,7 +123,7 @@ export function updateAOD(optical_dep)
 }
 
 
-export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
+export function getStartEndDateTime(dateTime = null, hourTolerance = 1, daily = null, previousDateTime=null)
 {
     let yesterday;
     let year, month, day, previousYear, previousMonth, previousDay, previousHr, hour, bufferHr, minute;
@@ -141,6 +140,28 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1)
         previousYear = yesterday.getUTCFullYear().toString().padStart(4, '0');
         previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
         previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
+    }
+    else if (dateTime && daily)
+    {
+        const setTime = new Date(Date.parse(dateTime))
+        yesterday = new Date(Date.parse(dateTime))
+        yesterday.setDate(setTime.getDate() - 1)
+        year = setTime.getUTCFullYear().toString().padStart(4, '0');
+        month = (setTime.getUTCMonth() + 1).toString().padStart(2, '0');
+        day = (setTime.getUTCDate()).toString().padStart(2, '0');
+        previousYear = yesterday.getUTCFullYear().toString().padStart(4, '0');
+        previousMonth = (yesterday.getUTCMonth() + 1).toString().padStart(2, '0');
+        previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
+        if (previousDateTime.length === 3)
+        {
+            hour = previousDateTime[2][1];
+            minute = previousDateTime[2][3];
+        }
+        else if (previousDateTime.length === 2)
+        {
+            hour = previousDateTime[1][1];
+            minute = previousDateTime[1][3];
+        }
     }
     else if (dateTime)
     {

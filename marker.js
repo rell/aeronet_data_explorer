@@ -11,15 +11,17 @@ export class MarkerManager {
     this.minRadius = this.defaultRadius;
     this.map = map;
     this.currentArg = args;
-    this.markersLayer = L.layerGroup().addTo(this.map);
     this.markersInactiveLayer = L.layerGroup().addTo(this.map);
+    this.markersLayer = L.layerGroup().addTo(this.map);
     this.active = [];
     this.totalActive = this.active.length;
     this.chart = null;
+    this.isChartCreated = false;
+    this.chartControl = null;
     this.endDate = null;
     this.startDate = null;
     this.dateString = null;
-    this.chartTimeLength = 30; // days to capture chart avgs
+    this.chartTimeLength = 30; // days to capture chart avgs and start date
     this.currentZoom = undefined;
     this.previousZoom = undefined;
     this.sitedata = undefined;
@@ -30,12 +32,10 @@ export class MarkerManager {
     this.zoomedMarkers();
   }
 
-  // This function takes in an array of site data and an active depth value
   addMarker(data, activeDepth) {
     this.sitedata = data
     this.activeDepth = activeDepth
 
-    // Set the site data and active depth properties of the object calling the addMarker function
     const site_name = 'AERONET_Site';
     const site_lat = 'Site_Latitude(Degrees)';
     const site_long = 'Site_Longitude(Degrees)';
@@ -54,9 +54,9 @@ export class MarkerManager {
               closePopupOnClick: false,
               color: '#000000',
               weight: 0,
-              riseOnHover: true,
+              // riseOnHover: true,
               fillColor: setColor(element[activeDepth]), // Set the fill color of the marker using a setColor function
-              fillOpacity: .85,
+              fillOpacity: 1,
               radius: parseFloat(element[activeDepth])+this.defaultRadius, // Set the radius of the marker using the active depth value of the current element
             });
 
@@ -65,7 +65,7 @@ export class MarkerManager {
           // autoPan: false,
           keepInView: true,
           closeButton: true,
-          autoClose: true,
+          autoClose: false,
           offset: [0,-2]
         }).setLatLng([element[site_lat],element[site_long]]);
         // Bind the extended popup to the marker
@@ -91,6 +91,10 @@ export class MarkerManager {
         // Add an event listener to the marker for when it is clicked
         marker.on('click', async () =>
         {
+          let latlng = marker.getLatLng();
+
+          this.map.setView(latlng);
+
           // Get the URL for the average data for the current site and time period
           if (parseInt(this.endDate[1])-1 !== this.startDate)
           {
@@ -102,9 +106,14 @@ export class MarkerManager {
           // Build a chart from the full data
           const chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
           // Create a chart control from the chart data
-          const chartControl = this.createMarkerChart(chartData)
+          this.chartControl = this.createMarkerChart(chartData, this.startDate, this.endDate, site)
           // Add the chart control to the markers layer
-          chartControl.addTo(this.map);
+          if (!this.isChartCreated)
+          {
+            this.isChartCreated = true
+            this.chartControl.addTo(this.map);
+          }
+
           // Split the date string of the current element to get the last date
           const lastDate = elementDate.split(':')
 
@@ -123,8 +132,10 @@ export class MarkerManager {
           extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is online</span> </p>
           <p>Most recent reading: <span style='font-weight:bold'>${activeReading}<span> </p>
           <div id='testtype'><p> As of ${this.dateString} ${elementTime} UTC</p>
-          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>
-          <p> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${element[site_name]}'>View Raw</a></p>
+          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html' target="_blank">${site}</a> (${element[site_lat]},${element[site_long]})</p>
+          <div class="button-container">
+          <button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${site}' target="_blank">View Raw</a></button><button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/data_display_aod_v3?site=${site}&nachal=0&year=${this.startDate[0]}&month=${parseInt(this.startDate[1])+1}&day=${(parseInt(this.startDate[2])-1).toString().padStart(2,'0')}&aero_water=0&level=1&if_day=0&if_err=0&place_code=10&year_or_month=0' target="_blank">Download Data</a></button>
+          </div>
           </div>`);
 
           // Open the extended popup on the map
@@ -133,7 +144,8 @@ export class MarkerManager {
           // Add an event listener to the marker for when the extended popup is closed
           marker.on('popupclose', event => {
             // Remove the chart control from the markers layer
-            this.chartClear(chartControl)
+            this.chartClear(this.chartControl)
+            this.isChartCreated = false
           })
         });
 
@@ -154,15 +166,14 @@ export class MarkerManager {
 
           // Update the content of the data popup with information about the site and the most recent reading
           dataPopup.setContent(`<div style='text-align:center'><p>Updated: <span style='font-weight:bold'>${this.dateString} ${elementTime} UTC<span></p>
-          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a>  (${element[site_long]}, ${element[site_lat]}) </p>
+          <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html' target="_blank">${site}</a>  (${element[site_long]}, ${element[site_lat]}) </p>
           <p>Latest: <span style='font-weight:bold'>${activeReading}</span></p></div>`)
 
           // Open the data popup on the map
           dataPopup.openOn(this.map);
         });
 
-        // Add an event listener to the marker for when the mouse pointer is no longer hovering over it
-        marker.on('mouseout', () =>
+        marker.on('click', () =>
         {
           // Close the data popup if it is open
           dataPopup.isOpen() ? this.map.closePopup() : undefined;
@@ -190,11 +201,11 @@ export class MarkerManager {
         const marker  = L.circleMarker([element[site_lat],element[site_long]],
             {
               closePopupOnClick: false,
-              color: '#000000',
+              color: '#FFFFFF',
               weight: 0,
               riseOnHover:true,
               fillColor: setColor('inactive'), // Set the fill color of the marker using a setColor function
-              fillOpacity: 0.40,
+              fillOpacity: 0.70,
               radius: this.defaultRadius
             });
 
@@ -238,10 +249,14 @@ export class MarkerManager {
 
         // Get the site name of the current element
         const site = element[site_name]
-
+        let isChartCreated = false
         // Add an event listener to the marker for when it is clicked
         marker.on('click', async () =>
         {
+          let latlng = marker.getLatLng();
+
+          this.map.setView(latlng);
+
           // Get the URL for the average data for the current site and time period
           if (parseInt(this.endDate[1])-1 !== this.startDate)
           {
@@ -256,7 +271,7 @@ export class MarkerManager {
           // Check if there is data in the chart data array
           if (chartData.length !== 0) {
             // Create a chart control from the chart data
-            const chartControl = this.createMarkerChart(chartData)
+            const chartControl = this.createMarkerChart(chartData, this.startDate, this.endDate, site)
             // Get the last element in the chart data array
             const lastElement = latestOfSet(chartData)
             // Split the date string of the last element to get the last date
@@ -270,7 +285,9 @@ export class MarkerManager {
               <p><span style='font-weight:bold'>Site is currently offline</span> </p>
               <div id='testtype'><p> ${site} has been active within the past thirty days. <span style='font-weight:bold'>${this.dateString}</span> is when the most recent reading occured.</p>
               <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a>  (${element[site_lat]},${element[site_long]})</p>
-              <p> <a href=${avgUrl}>View Raw</a></p>
+              <div class="button-container">
+              <button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${site}' target="_blank">View Raw</a></button><button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/data_display_aod_v3?site=${site}&nachal=0&year=${this.startDate[0]}&month=${parseInt(this.startDate[1])+1}&day=${(parseInt(this.startDate[2])-1).toString().padStart(2,'0')}&aero_water=0&level=1&if_day=0&if_err=0&place_code=10&year_or_month=0' target="_blank">Download Data</a></button>
+              </div>              
               </div>`);
 
             // Open the extended popup on the map
@@ -283,14 +300,16 @@ export class MarkerManager {
             marker.on('popupclose', (event) => {
 
               // Remove the chart control from the markers layer
-              this.chartClear(chartControl)
+              this.chartClear(this.chartControl)
+              this.isChartCreated = false;
+
             })
           } else {
 
             // If there is no data in the chart data array, update the content of the extended popup with information about the inactive site and the lack of data
             extendedPopup.setContent(`<p><span style='font-weight:bold'>Site is currently offline</span> </p>
             <!-- <p>${site} has been <span style='font-weight:bold'>inactive</span> within the past thirty days. no data to display.</p> -->
-            <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
+            <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html' target="_blank">${site}</a> (${element[site_lat]},${element[site_long]})</p>`);
             extendedPopup.openOn(this.map)
           }
 
@@ -389,7 +408,7 @@ export class MarkerManager {
       this.currentZoom = this.map.getZoom();
       if (this.currentZoom < this.previousZoom) {
         this.previousZoom = this.currentZoom;
-        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
         this.fieldsClass.radiusIncreased = false
         this.fieldsClass.siteCurrentlyZoomed = false
         this.markersInactiveLayer.eachLayer((layer) => {
@@ -412,7 +431,7 @@ export class MarkerManager {
         this.previousZoom = this.currentZoom;
         this.fieldsClass.radiusIncreased = false
         this.fieldsClass.siteCurrentlyZoomed = false
-        const opacity = this.currentZoom <= 5 ? 0.1 : 1; // Adjust this value to control the zoom opacity factor
+        const opacity = this.currentZoom <= 5 ? 0.5 : 1; // Adjust this value to control the zoom opacity factor
         this.markersInactiveLayer.eachLayer((layer) => {
           if (layer instanceof L.CircleMarker) {
             if (this.currentZoom > 4) {
@@ -439,32 +458,64 @@ export class MarkerManager {
 
   }
 
-  createMarkerChart(chartData)
-  {
-    const chartCanvas = document.createElement('canvas');
-    chartCanvas.id = 'graph';
-    chartCanvas.width = 7;
-    chartCanvas.height = 3;
-    this.chart = drawGraph(chartData, chartCanvas);
-    const chartControl = L.control({position: 'bottomright'});
-    chartControl.onAdd = function() {
-      const container = L.DomUtil.create('div', 'leaflet-control-graph');
-      container.appendChild(chartCanvas);
-      return container;
-    };
-    return chartControl;
-  }
-  chartClear(chartControl)
-  {
-    const chartCanvas = chartControl.getContainer().querySelector('.leaflet-control-graph canvas');
-    if (chartCanvas && chartCanvas.parentNode) {
-      chartCanvas.parentNode.removeChild(chartCanvas);
+  createMarkerChart(chartData, startDate, endDate, site) {
+    if (this.chartControl) {
+      this.chartControl.remove(); // Remove the existing chart control if it already exists
     }
-    this.map.removeControl(chartControl);
-    this.chart = null;
+
+    if (this.chartControl === null) {
+
+      // Create the chart canvas
+      const chartCanvas = document.createElement('canvas');
+      chartCanvas.id = 'graph';
+      chartCanvas.style.display = 'block'
+      chartCanvas.width = 800;
+      chartCanvas.height = 200;
+
+      const chart = drawGraph(chartData, chartCanvas);
+
+      const textContainer = document.createElement('div');
+      textContainer.style.margin = '10px'
+      textContainer.style.top = '10px';
+      textContainer.style.left = '10px';
+      textContainer.style.font = '16px Arial';
+      textContainer.style.color = 'black';
+
+      const textElement = document.createElement('p');
+      const startDateString = new Date(Date.UTC(parseInt(startDate[0]), parseInt(startDate[1])-1, parseInt(startDate[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+      const endDateString = new Date(Date.UTC(parseInt(endDate[0]), parseInt(endDate[1])-1, parseInt(endDate[2])+1)).toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+
+      textElement.textContent = ` ${site} | Daily Average(s) — ${startDateString} to ${endDateString}`;
+
+      textContainer.appendChild(textElement);
+
+      this.chartControl = L.control({ position: 'bottomright' });
+      this.chartControl.onAdd = function () {
+        const container = L.DomUtil.create('div', 'leaflet-control-graph');
+        container.appendChild(textContainer);
+        container.appendChild(chartCanvas);
+        return container;
+      };
+    }
+
+    return this.chartControl;
+  }
+  chartClear() {
+    try {
+      const chartCanvas = this.chartControl.getContainer().querySelector('.leaflet-control-graph canvas');
+      if (chartCanvas && chartCanvas.parentNode) {
+        chartCanvas.parentNode.removeChild(chartCanvas);
+      }
+      this.map.removeControl(this.chartControl);
+      this.chartControl = null;
+      this.chart = null;
+
+    } catch (error)
+    {
+      this.isChartCreated = false
+    }
   }
 
-// This method creates a custom control to reset the map view and marker radius
   resetMap() {
     var customControl = L.Control.extend({
       options: {
@@ -477,7 +528,7 @@ export class MarkerManager {
         // Add a click event listener to the button
         L.DomEvent.on(button, 'click', () => {
           this.changeMarkerRadius(null)
-          map.setView([0.0, 0.0], 3);
+          map.setView([50,0],3.50);
         });
         // Return the button element
         return button;

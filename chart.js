@@ -1,7 +1,8 @@
-export function drawGraph(data, canvas)
-{
+export function drawGraph(data, canvas) {
   const ctx = canvas.getContext('2d');
   const average = data.reduce((sum, d) => sum + d.y, 0) / data.length;
+  // canvas.width = 400;
+  // canvas.height = 600;
   return new Chart(ctx, {
     type: 'line',
     data: {
@@ -18,34 +19,38 @@ export function drawGraph(data, canvas)
         data: [{ x: data[0].x, y: average }, { x: data[data.length - 1].x, y: average }],
         borderColor: 'red',
         borderWidth: 1,
-        // Configure the borderDash option to display the line as a dotted line
         borderDash: [5, 5],
         fill: false,
-        // Display the average line behind the main data
         order: 0,
-        // Do not display the average line in the legend
         showLine: false,
       }
       ],
     },
     options: {
+      maintainAspectRatio: false,
+      animation: {
+        duration: 0,
+        easing: 'linear',
+        animateRotate: false,
+        animateScale: false,
+        animateDraw: false,
+      },
+      hover: {
+        animationDuration: 0,
+      },
+      responsiveAnimationDuration: 0,
       legend: {
         display: false,
       },
       tooltips: {
-        callbacks:{
+        callbacks: {
           title: function(tooltipItem, data) {
-            // Get the index of the hovered point
             const index = tooltipItem[0].index;
-            // Get the corresponding data point
             const dataPoint = data.datasets[0].data[index];
-            // Format the date string
             const date = formatDate(data.labels[index], true);
-            // Return the title with the full date string and AOD value
             return `${date}\nAverage AOD Value: ${dataPoint}`;
           },
-          label: function(tooltipItem)
-          {
+          label: function(tooltipItem) {
             return '';
           }
         }
@@ -54,36 +59,44 @@ export function drawGraph(data, canvas)
         yAxes: [
           {
             ticks: {
+              fontColor: 'black',
               beginAtZero: true,
               stepSize: 1,
-              maxTickLimit: 4
+              maxTickLimit: 4,
             },
           },
         ],
         xAxes: [
           {
             ticks: {
+              fontColor: 'black',
               maxTicksLimit: 15,
               autoSkip: true,
+              // max: parseFloat(data.datasets[0].data.toFixed(2)),
               maxRotation: 150,
               minRotation: 0,
               callback: function(value, index, values) {
                 return formatDate(value);
-              }
-            }
-          }
-        ]
+              },
+            },
+          },
+        ],
       },
-      backgroundColor: 'rgba(255, 255, 255, 1)',
-      responsive: true,
-      onCreate: function (chart) {
-        // Calculate the max value based on the chart data
+      elements: {
+        line: {
+          borderColor: 'rgba(0, 0, 0, 1)',
+        },
+        point: {
+          borderColor: 'rgba(0, 0, 0, 1)',
+        },
+      },
+      responsive: false,
+      onCreated: function(chart) {
         const max = Math.max(...chart.data.datasets[0].data);
-        // Update the max option of the y-axis ticks
         chart.options.scales.yAxes[0].ticks.max = parseFloat(max.toFixed(2));
         chart.update();
-      }
-    }
+      },
+    },
   });
 }
 function formatDate(dateString, full=false) {
