@@ -205,7 +205,7 @@ export class MarkerManager {
               weight: 0,
               riseOnHover:true,
               fillColor: setColor('inactive'), // Set the fill color of the marker using a setColor function
-              fillOpacity: 0.70,
+              fillOpacity: 0.40,
               radius: this.defaultRadius
             });
 
@@ -541,7 +541,7 @@ export class MarkerManager {
         // Add a click event listener to the button
         L.DomEvent.on(button, 'click', () => {
           this.changeMarkerRadius(null)
-          map.setView([50,0],3.50);
+          map.setView([0, 0], 1);
         });
         // Return the button element
         return button;

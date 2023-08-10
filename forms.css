@@ -26,10 +26,10 @@ body
 #fields {
     min-height: 300px;
     min-width: 327px;
-    width: 10%;
+    width: 10vw;
     float: left;
     /* Adjust later */
-    overflow: hidden;
+    /*overflow-x: auto;*/
 
 }
 

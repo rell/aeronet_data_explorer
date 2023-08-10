@@ -1,6 +1,7 @@
 import {getSitesData, latestOfSet} from './data.js';
 import {updateAOD, updateTime, getStartEndDateTime} from './components.js';
-import {initDropdown} from './init.js';
+import {initDropdown, initMap} from './init.js';
+import { MarkerManager } from "./marker.js";
 
 // This class is responsible for initializing and updating the various fields in the user interface
 export class FieldInitializer {
@@ -107,10 +108,26 @@ export class FieldInitializer {
         header.textContent = "Data Filters";
         header.style.textAlign = 'center';
 
+        // Set the HTML for the fields container.
+        const adjustMapHeader = document.createElement("h2");
+        adjustMapHeader.textContent = "Adjust Map";
+        adjustMapHeader.style.textAlign = 'center';
+
+        const basemapOptions = [
+            { value: null, label: 'ArcGIS Satellite View Map' },
+            { value: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', label: 'Leaflet Original Map' },
+            // { value: 'topo', label: 'Topographic' },
+        ]
+
+        placeholder = 'ArcGIS Satellite View Mpa'
+        const dropDisc = 'Select Map';
+        toolTipContent =  'This option allows you to select different base maps to overlay data to.'
+        const dropdownBM = initDropdown('basemap-dropdown', basemapOptions, dropDisc, placeholder, false, 'map-fields', toolTipContent);
+
         // Insert the header before the form element
         fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
 
-        fieldsContainer.innerHTML = `${header.outerHTML}<form>${dropdownAOD}${dropdownSite}${dropdownData}${calender}${inactiveOff}</form>`;
+        fieldsContainer.innerHTML = `${header.outerHTML}<form>${dropdownAOD}${dropdownSite}${dropdownData}${calender}${inactiveOff}</form> ${adjustMapHeader.outerHTML} <form>${dropdownBM}</form>`;
 
         // Append the fields container to the map container
         const mapContainer = document.getElementById('map-container');
@@ -124,6 +141,40 @@ export class FieldInitializer {
             this.normalizeMarkers()
             this.recentlySetInactive = true
             this.setToggleValue(this.recentlySetInactive)
+        });
+
+        let newBasemapLayer = null
+        let basemapLayer = null;
+
+        const mapDropdownElm = document.getElementById('basemap-dropdown');
+        mapDropdownElm.addEventListener('change', async event => {
+            const selectedBasemap = event.target.value;
+
+            if (basemapLayer !== null) {
+                // If there's an existing basemap layer, remove it from the map
+                this.map.removeLayer(basemapLayer);
+                basemapLayer = null; // Reset the basemapLayer reference
+            }
+
+            if (selectedBasemap !== null && selectedBasemap !== 'null') {
+
+                // Create a new tile layer with the captured URL
+                newBasemapLayer = L.tileLayer(selectedBasemap, {
+                    attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a>',
+                    noWrap: true,
+                    tileSize: 256,
+                    errorTileUrl: '',
+                    errorTileTimeout: 5000,
+                });
+                // Add the new basemap layer to the map
+                newBasemapLayer.addTo(this.map);
+            } else {
+                this.map.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer && newBasemapLayer !== null) {
+                        this.map.removeLayer(newBasemapLayer);
+                    }
+                });
+            }
         });
 
         // realtime and daily field
@@ -149,7 +200,7 @@ export class FieldInitializer {
                 this.normalizeMarkers()
             }else {
 
-                this.map.setView([50,0],3.50);
+                this.map.setView([0, 0], 1);
             }
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
