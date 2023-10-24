@@ -151,6 +151,39 @@ export function buildChartData(data, activeDepth, endDate, startDate)
 
 }
 
+export function fillChartData(chartData)
+{
+    // get first date -> data.x get last date (set below)
+    // generate all dates between. then set data if it does not exist when setting
+    // to null. this will then allow gaps to work
+    let activeDates = []
+    // chartData.map(data => {
+    //     activeDates.push(data.x)
+    // })
+
+    console.log(activeDates)
+    let modChartData = {}
+
+    let firstDate = chartData[0];
+    let lastDate = chartData[chartData.length-1];
+
+    let current_date_chart = data.x.split(':');
+
+    const  chart_current_day = new Date(current_date_chart[2],
+        parseInt(current_date_chart[1]) - 1,
+        current_date_chart[0]);
+    const tomorrow = new Date(chart_current_day);
+
+    let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(tomorrow);
+    let month = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(tomorrow);
+    let day = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(tomorrow);
+
+    tomorrow.setDate(chart_current_day.getDate() + 1);
+    let isNextDay = `:${day}:${month}:${year}`
+
+
+    return chartData;
+}
 
 export async function getFullData(url)
 {

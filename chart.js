@@ -1,8 +1,11 @@
+import {fillChartData} from "./data.js";
+
 export function drawGraph(data, canvas) {
   const ctx = canvas.getContext('2d');
-  const average = data.reduce((sum, d) => sum + d.y, 0) / data.length;
+  // const average = data.reduce((sum, d) => sum + d.y, 0) / data.length;
   // canvas.width = 400;
   // canvas.height = 600;
+
   return new Chart(ctx, {
     type: 'line',
     data: {
@@ -14,16 +17,20 @@ export function drawGraph(data, canvas) {
         // backgroundColor: 'rgba(255, 99, 132, 0.2)',
         borderWidth: 1,
         fill: true,
-      },  {
-        label: 'Average',
-        data: [{ x: data[0].x, y: average }, { x: data[data.length - 1].x, y: average }],
-        borderColor: 'red',
-        borderWidth: 1,
-        borderDash: [5, 5],
-        fill: false,
-        order: 0,
-        showLine: false,
-      }
+        spanGaps: true,
+      },
+      //   {
+      //   label: 'Average',
+      //   data: [{ x: data[0].x, y: average }, { x: data[data.length - 1].x, y: average }],
+      //   borderColor: 'red',
+      //   borderWidth: 1,
+      //   borderDash: [5, 5],
+      //   fill: false,
+      //   order: 0,
+      //   spanGaps:false,
+      //
+      //   // showLine: true,
+      // }
       ],
     },
     options: {
@@ -60,9 +67,9 @@ export function drawGraph(data, canvas) {
           {
             ticks: {
               fontColor: 'black',
-              beginAtZero: true,
+              // beginAtZero: true,
               stepSize: 1,
-              maxTickLimit: 4,
+              // maxTickLimit: 4,
             },
           },
         ],
@@ -70,7 +77,7 @@ export function drawGraph(data, canvas) {
           {
             ticks: {
               fontColor: 'black',
-              maxTicksLimit: 15,
+              // maxTicksLimit: 15,
               autoSkip: true,
               // max: parseFloat(data.datasets[0].data.toFixed(2)),
               maxRotation: 150,

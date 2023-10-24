@@ -8,7 +8,7 @@ export function initMap(basemapUrl = null) {
             const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
             const basemapLayer = L.tileLayer(basemapUrl, {
                 attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a>',
-                noWrap: true,
+                // noWrap: true,
                 tileSize: 256,
                 errorTileUrl: '',
                 errorTileTimeout: 5000,
@@ -63,6 +63,13 @@ export function initMap(basemapUrl = null) {
         }
 
         map = L.map('map', options);
+    }
+
+    let t = L.terminator();
+    t.addTo(map);
+    setInterval(function(){updateTerminator(t)}, 500);
+    function updateTerminator(t) {
+        t.setTime();
     }
 
     return map;

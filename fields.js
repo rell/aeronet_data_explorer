@@ -46,10 +46,10 @@ export class FieldInitializer {
         // const siteNames = this.allSiteData.map(obj => `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`);
         // const siteValues = this.allSiteData.map(obj => `${obj['Site_Name']}`);
 
-        this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label:`${obj['Site_Name']}`}))
-            .sort((a, b) => a.value.localeCompare(b.value));
-        // this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label: `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`}))
+        // this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label:`${obj['Site_Name']}`}))
         //     .sort((a, b) => a.value.localeCompare(b.value));
+        this.siteFieldData = this.allSiteData.map(obj => ({ value: `${obj['Site_Name']}`, label: `${obj['Site_Name']} (${obj['Latitude(decimal_degrees)']}, ${obj['Longitude(decimal_degrees)']})`}))
+            .sort((a, b) => a.value.localeCompare(b.value));
         // Initialize dropdown menus for selecting data type and AERONET site.
         let placeholder = '500';
         const aodDisc = 'Select wavelength';
@@ -62,11 +62,11 @@ export class FieldInitializer {
         const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent,);
 
 
-        const datatypeOpt = [{value: 10, label: 'Real-time'}, {value: 20, label: 'Daily'}];
+        const datatypeOpt = [{value: 10, label: 'NRT'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
         toolTipContent =  '<strong>Real-time:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
             '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
-        placeholder = 'realtime'
+        placeholder = 'NRT'
         const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields', toolTipContent);
 
         // Initialize Flatpickr date/time picker.

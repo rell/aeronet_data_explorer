@@ -1,4 +1,4 @@
-import { getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet } from './data.js';
+import {getAvg, getAvgUrl, getFullData, buildChartData, latestOfSet, fillChartData} from './data.js';
 import { setColor } from './components.js';
 import { drawGraph } from './chart.js';
 // import { } // set all keys to data in a config file
@@ -104,7 +104,9 @@ export class MarkerManager {
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
+          let  chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
+          chartData = fillChartData(chartData)
+
           // Create a chart control from the chart data
           this.chartControl = this.createMarkerChart(chartData, this.startDate, this.endDate, site)
           // Add the chart control to the markers layer
@@ -266,8 +268,8 @@ export class MarkerManager {
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
           // Build a chart from the full data
-          const chartData = buildChartData(timedSiteData, active_depth, this.endDate, this.startDate);
-
+          let chartData = buildChartData(timedSiteData, active_depth, this.endDate, this.startDate);
+          chartData = fillChartData(chartData)
           // Check if there is data in the chart data array
           if (chartData.length !== 0) {
             // Create a chart control from the chart data

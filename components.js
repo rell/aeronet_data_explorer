@@ -178,7 +178,7 @@ export function getStartEndDateTime(dateTime = null, hourTolerance = 1, daily = 
         previousDay = (yesterday.getUTCDate()).toString().padStart(2, '0');
     }
 
-
+    // Normalize Hours back to 24-hour format
     previousHr = (((parseInt(hour) - hourTolerance) % 24 + 24) % 24).toString().padStart(2, '0');
     bufferHr = (((parseInt(hour) + 1) % 24 + 24) % 24).toString().padStart(2, '0');
 
