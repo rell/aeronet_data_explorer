@@ -17,7 +17,7 @@ export function drawGraph(data, canvas) {
         // backgroundColor: 'rgba(255, 99, 132, 0.2)',
         borderWidth: 1,
         fill: true,
-        spanGaps: true,
+        spanGaps: false,
       },
       //   {
       //   label: 'Average',
@@ -67,7 +67,7 @@ export function drawGraph(data, canvas) {
           {
             ticks: {
               fontColor: 'black',
-              // beginAtZero: true,
+              beginAtZero: true,
               stepSize: 1,
               // maxTickLimit: 4,
             },
