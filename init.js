@@ -64,14 +64,12 @@ export function initMap(basemapUrl = null) {
 
         map = L.map('map', options);
     }
-
-    let t = L.terminator();
+    var t = L.terminator();
     t.addTo(map);
     setInterval(function(){updateTerminator(t)}, 500);
     function updateTerminator(t) {
         t.setTime();
     }
-
     return map;
 }
 

@@ -22,6 +22,7 @@ async function initializeMap() {
     if (!map) {
         map = initMap();
     }
+    // map = initMap();
 
     defaultDate = getStartEndDateTime();
 

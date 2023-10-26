@@ -24,6 +24,8 @@ export class FieldInitializer {
         this.siteCurrentlyZoomed = false
         this.daily = false
         this.toggleInactive = null
+        this.terminator = null
+        this.wmsLayer = null
         this.init();
     }
 
@@ -108,7 +110,6 @@ export class FieldInitializer {
         header.textContent = "Data Filters";
         header.style.textAlign = 'center';
 
-// Define basemaps
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -118,169 +119,55 @@ export class FieldInitializer {
             maxZoom: 19,
             attribution: 'Tiles &copy; Esri'
         });
-        var template =
-            '//gibs-{s}.earthdata.nasa.gov/wmts/epsg4326/best/' +
-            '{layer}/default/{time}/{tileMatrixSet}/{z}/{y}/{x}.jpg';
 
-        var nasa = L.tileLayer(template, {
-            layer: 'MODIS_Terra_CorrectedReflectance_TrueColor',
-            tileMatrixSet: 'GoogleMapsCompatible_Level9',
-            maxZoom: 9,
-            time: '2023-11-04',
-            tileSize: 256,
-            subdomains: 'abc',
-            noWrap: true,
-            continuousWorld: true,
-            // Prevent Leaflet from retrieving non-existent tiles on the
-            // borders.
-            bounds: [
-                [-85.0511287776, -179.999999975],
-                [85.0511287776, 179.999999975]
-            ],
-            attribution:
-                '<a href="https://wiki.earthdata.nasa.gov/display/GIBS">' +
-                'NASA EOSDIS GIBS</a>&nbsp;&nbsp;&nbsp;' +
-                '<a href="https://github.com/nasa-gibs/web-examples/blob/main/examples/leaflet/webmercator-epsg3857.js">' +
-                'View Source' +
-                '</a>'
-        });
-        var wmsLayer = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/layer-metadata/v1.0/VIIRS_NOAA20_CorrectedReflectance_TrueColor.json', {
-            layers: 'VIIRS_NOAA20_CorrectedReflectance_TrueColor'
-        })
+        console.log(this.dateString)
 
-        var template =
-            '//gibs-{s}.earthdata.nasa.gov/wmts/epsg4326/best/' +
-            '{layer}/default/{time}/{tileMatrixSet}/{z}/{y}/{x}.jpg';
+        this.wmsLayer = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
+            layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor"],
+            crs: L.CRS.EPSG4326,
+            format: 'image/png',
+            opacity: 0.7,
+            transparent:true,
 
-        var nasa2 = L.tileLayer(template, {
-            layer: 'VIIRS_NOAA20_CorrectedReflectance_TrueColor',
-            tileMatrixSet: '250m',
-            time: '2013-11-04',
-            tileSize: 512,
-            subdomains: 'abc',
-            noWrap: true,
-            continuousWorld: true,
-            // Prevent Leaflet from retrieving non-existent tiles on the
-            // borders.
-            bounds: [
-                [-89.9999, -179.9999],
-                [89.9999, 179.9999]
-            ],
-            attribution:
-                '<a href="https://wiki.earthdata.nasa.gov/display/GIBS">' +
-                'NASA EOSDIS GIBS</a>&nbsp;&nbsp;&nbsp;' +
-                '<a href="https://github.com/nasa-gibs/web-examples/blob/main/examples/leaflet/geographic-epsg4326.js">' +
-                'View Source' +
-                '</a>'
         });
 
+        function updateTime(layer, newTime) {
+            layer.setParams({time: newTime});
+        }
 
-// Create control
+        this.wmsLayer1 = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
+            layers: "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
+            crs: L.CRS.EPSG4326,
+            time: "2023-12-10",
+            opacity: 0.5
+        });
+
+        this.wmsLayer2 = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
+            layers: ["Coastlines","Reference_Labels"],
+            crs: L.CRS.EPSG4326,
+            time: "2023-12-10",
+        });
+
+        // updateTime(this.wmsLayer, this.dateString);
+        // wmsLayer.time = '2013-11-04'
+
+        // wmsLayer({time:"2022-12-12"})
+        // var wmtsLayer = L.tileLayer('https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/{your_token}/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fpng', {
+        //     maxZoom: 9,
+        //     minZoom: 0,
+        //     continuousWorld: true,
+        //     attribution: '© <a href="https://www.lantmateriet.se/en/">Lantmäteriet</a> Topografisk Webbkarta Visning, CCB',
+        // })
+
+        // Create control
         var baseMaps = {
+            "AERONET Test3" : this.wmsLayer,
+            // "AERONET Test33": [this.wmsLayer1,this.wmsLayer2],
             "OpenStreetMap": osm,
             "Esri WorldStreetMap": esri,
-            "AERONET Test" : nasa,
-            "AERONET Test2" : wmsLayer,
-            "AERONET Test3" : nasa2,
         };
 
         L.control.layers(baseMaps).addTo(this.map);
-
-
-
-        // const basemapOptions = [
-        //     { value: null, label: 'ArcGIS Satellite View Map' },
-        //     { value: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', label: 'Leaflet Original Map' },
-        //     // { value: 'topo', label: 'Topographic' },
-        // ]
-
-
-//         const dropDisc = 'Select Map';
-//          placeholder = 'ArcGIS Satellite View Map';
-//          toolTipContent = 'This option allows you to select different base maps to overlay data to.';
-//
-//         const dropdownBM = initDropdownCN('basemap-dropdown', basemapOptions, dropDisc, placeholder, false, 'map-fields', toolTipContent);
-//
-//
-// // Create a custom Leaflet control
-//         const AdjustMapControl = L.Control.extend({
-//             onAdd: function(map) {
-//                 // Create the container element for the control
-//                 const container = L.DomUtil.create('div', 'adjust-map-control');
-//
-//                 // Set the HTML for the fields container
-//                 const adjustMapHeader = document.createElement("h2");
-//                 adjustMapHeader.textContent = "Adjust Map";
-//                 adjustMapHeader.style.textAlign = 'center';
-//                 container.appendChild(adjustMapHeader);
-//
-//                 const dropDisc = 'Select Map';
-//                 const placeholder = 'ArcGIS Satellite View Map';
-//                 const toolTipContent = 'This option allows you to select different base maps to overlay data to.';
-//
-//                 container.appendChild(dropdownBM);
-//
-//                 // Return the container element
-//                 return container;
-//             },
-//
-//             onRemove: function(map) {
-//                 // Clean up any event listeners or other resources if needed
-//             }
-//         });
-//         let newBasemapLayer = null
-//         let basemapLayer = null;
-//
-//         const mapDropdownElm = document.getElementById('basemap-dropdown');
-//
-//         mapDropdownElm.addEventListener('change', async event => {
-//             const selectedBasemap = event.target.value;
-//
-//             if (basemapLayer !== null) {
-//                 // If there's an existing basemap layer, remove it from the map
-//                 this.map.removeLayer(basemapLayer);
-//                 basemapLayer = null; // Reset the basemapLayer reference
-//             }
-//
-//             if (selectedBasemap !== null && selectedBasemap !== 'null') {
-//
-//                 // Create a new tile layer with the captured URL
-//                 newBasemapLayer = L.tileLayer(selectedBasemap, {
-//                     attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a>',
-//                     noWrap: true,
-//                     tileSize: 256,
-//                     errorTileUrl: '',
-//                     errorTileTimeout: 5000,
-//                 });
-//                 // Add the new basemap layer to the map
-//                 newBasemapLayer.addTo(this.map);
-//             } else {
-//                 this.map.eachLayer(layer => {
-//                     if (layer instanceof L.TileLayer && newBasemapLayer !== null) {
-//                         this.map.removeLayer(newBasemapLayer);
-//                     }
-//                 });
-//             }
-//         });
-
-//
-// // Create an instance of the custom control
-//         const adjustMapControl = new AdjustMapControl();
-//
-// // Add the control to the map
-//         adjustMapControl.addTo(this.map);
-//
-//
-
-        // Set the HTML for the fields container.
-        // const adjustMapHeader = document.createElement("h2");
-        // adjustMapHeader.textContent = "Adjust Map";
-        // adjustMapHeader.style.textAlign = 'center';
-
-        // placeholder = 'ArcGIS Satellite View Mpa'
-        // const dropDisc = 'Select Map';
-        // toolTipContent =  'This option allows you to select different base maps to overlay data to.'
-        // const dropdownBM = initDropdown('basemap-dropdown', basemapOptions, dropDisc, placeholder, false, 'map-fields', toolTipContent);
 
         // Insert the header before the form element
         fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
