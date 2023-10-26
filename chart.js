@@ -2,9 +2,17 @@ import {fillChartData} from "./data.js";
 
 export function drawGraph(data, canvas) {
   const ctx = canvas.getContext('2d');
-  // const average = data.reduce((sum, d) => sum + d.y, 0) / data.length;
-  // canvas.width = 400;
-  // canvas.height = 600;
+  data.sort(function(a, b) {
+    // Convert dates from "dd:mm:yyyy" to "yyyy-mm-dd"
+    var partsA = a.x.split(":");
+    var dateA = new Date(partsA[2], partsA[1] - 1, partsA[0]);
+
+    var partsB = b.x.split(":");
+    var dateB = new Date(partsB[2], partsB[1] - 1, partsB[0]);
+
+    // Compare the dates
+    return dateA - dateB;
+  });
 
   return new Chart(ctx, {
     type: 'line',

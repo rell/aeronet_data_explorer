@@ -5,6 +5,7 @@ import { MarkerManager } from "./marker.js";
 
 // This class is responsible for initializing and updating the various fields in the user interface
 export class FieldInitializer {
+
     constructor(siteData, allSiteData, opticalDepth, map, markerLayer, dateTime) {
         this.dateString = null
         this.siteData = siteData;
@@ -24,7 +25,7 @@ export class FieldInitializer {
         this.siteCurrentlyZoomed = false
         this.daily = false
         this.toggleInactive = null
-        this.terminator = null
+        this.terminator = L.terminator();
         this.wmsLayer = null
         this.init();
     }
@@ -64,7 +65,7 @@ export class FieldInitializer {
         const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent,);
 
 
-        const datatypeOpt = [{value: 10, label: 'NRT'}, {value: 20, label: 'Daily'}];
+        const datatypeOpt = [{value: 10, label: 'NRT (+1/-1)'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
         toolTipContent =  '<strong>Real-time:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
             '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
@@ -110,46 +111,38 @@ export class FieldInitializer {
         header.textContent = "Data Filters";
         header.style.textAlign = 'center';
 
-        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(this.map);
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            noWrap:true,
 
-        var esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Tiles &copy; Esri'
+        });
+
+
+        const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            zIndex: 1000,
+            noWrap: true,
+            tileSize: 256,
+            errorTileUrl: '',
+            errorTileTimeout: 5000,
         });
 
         console.log(this.dateString)
 
         this.wmsLayer = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
             layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor"],
-            crs: L.CRS.EPSG4326,
             format: 'image/png',
-            opacity: 0.7,
-            transparent:true,
-
-        });
-
-        function updateTime(layer, newTime) {
-            layer.setParams({time: newTime});
-        }
-
-        this.wmsLayer1 = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
-            layers: "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
             crs: L.CRS.EPSG4326,
-            time: "2023-12-10",
-            opacity: 0.5
+            opacity: 0.5,
+            transparent: true,
+            attribution: "",
+            noWrap:true,
         });
 
-        this.wmsLayer2 = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
-            layers: ["Coastlines","Reference_Labels"],
-            crs: L.CRS.EPSG4326,
-            time: "2023-12-10",
-        });
-
-        // updateTime(this.wmsLayer, this.dateString);
-        // wmsLayer.time = '2013-11-04'
+        const cloudLayer = L.layerGroup([this.wmsLayer, labelsLayer]);
+        let boilerDate = new Date()
+        // this.updateTerminator(this.trueerminator,boilerDate.toISOString())
+        this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}` )
 
         // wmsLayer({time:"2022-12-12"})
         // var wmtsLayer = L.tileLayer('https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/{your_token}/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fpng', {
@@ -161,13 +154,17 @@ export class FieldInitializer {
 
         // Create control
         var baseMaps = {
-            "AERONET Test3" : this.wmsLayer,
-            // "AERONET Test33": [this.wmsLayer1,this.wmsLayer2],
-            "OpenStreetMap": osm,
-            "Esri WorldStreetMap": esri,
+            "Cloud Layer" : cloudLayer,
+            "Default Open Street Map": osm,
+            "None" : labelsLayer,
         };
 
         L.control.layers(baseMaps).addTo(this.map);
+
+        this.map.on('baselayerchange', function(e) {
+
+        });
+
 
         // Insert the header before the form element
         fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
@@ -206,6 +203,8 @@ export class FieldInitializer {
                 this.daily = true
                 updateFlatpickrOptions(this.daily);
             }
+            this.updateTerminator(this.terminator, this.dateString, this.daily)
+
 
             this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args);
             if (this.siteCurrentlyZoomed)
@@ -218,6 +217,7 @@ export class FieldInitializer {
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
+
         });
 
 
@@ -335,6 +335,7 @@ export class FieldInitializer {
             // Get the selected date from Flatpickr
             this.dateString  = document.getElementById('date-input').value;
             this.dateTime = getStartEndDateTime(this.dateString, this.hourTolerance, this.daily, this.dateTime)
+            this.updateTerminator(this.terminator, this.dateString, this.daily)
             this.updateApiArgs();
             this.markerLayer.endDate = this.dateTime.length === 3 ? this.dateTime[1] : this.dateTime[0];
             this.markerLayer.startDate = this.setChartStart(this.dateTime)
@@ -344,6 +345,8 @@ export class FieldInitializer {
             this.recentlySetInactive = true;
             this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
+            this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}`)
+            console.log(this.dateTime)
         });
 
         this.toggleInactive = document.getElementById('toggle-inactive');
@@ -375,6 +378,7 @@ export class FieldInitializer {
         } else {
             console.error('Tooltip elements not found in the DOM');
         }
+
     }
 
     setToggleValue(value) {
@@ -404,7 +408,6 @@ export class FieldInitializer {
         }
         return [startYear, startMonth, startDay].map(value => value.toString().padStart(2, '0'));
     }
-
 
     normalizeMarkers()
     {
@@ -455,8 +458,39 @@ export class FieldInitializer {
         }
 
     }
+    updateTerminator(t, time, daily) {
+
+        if (daily)
+        {
+            console.log(time)
+            // Remove the old terminator layer from the map
+            this.map.removeLayer(this.terminator);
+        }
+        else
+        {
+            console.log(time)
+            // Remove the old terminator layer from the map
+            this.map.removeLayer(this.terminator);
+
+            // Create a new terminator layer with the specified time
+            this.terminator = L.terminator({
+                time: time
+            });
+
+            // Add the new terminator layer to the map
+            this.terminator.addTo(this.map);
+        }
+
+    }
+    updateTime(layer, newTime) {
+        layer.setParams({time: newTime});
+    }
     updateAvg(avg)
     {
         this.avg = avg;
+    }
+    addTermToMap()
+    {
+        this.terminator.addTo(this.map);
     }
 }

@@ -1,76 +1,40 @@
 let map = null;
 
 export function initMap(basemapUrl = null) {
-    if (!map) {
-        let basemapLayer, options, bounds;
+    basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    const basemapLayer = L.tileLayer(basemapUrl, {
+        // attribution: '<a href="https://openstreetmap.org">OSM</a>',
+        // noWrap: true,
+        tileSize: 256,
+        errorTileUrl: '',
+        errorTileTimeout: 5000,
 
-        if (!basemapUrl) {
-            const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-            const basemapLayer = L.tileLayer(basemapUrl, {
-                attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a>',
-                // noWrap: true,
-                tileSize: 256,
-                errorTileUrl: '',
-                errorTileTimeout: 5000,
+    });
 
-            });
+    const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        zIndex: 1000,
+        noWrap: true,
+        tileSize: 256,
+        errorTileUrl: '',
+        errorTileTimeout: 5000,
+    });
 
-            const labelsUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
-            const labelsLayer = L.tileLayer(labelsUrl, {
-                zIndex: 1,
-                noWrap: true,
-                tileSize: 256,
-                errorTileUrl: '',
-                errorTileTimeout: 5000,
+    const bounds = [
+        [-90, -180], // Southwest coordinates
+        [90, 180], // Northeast coordinates
+    ];
 
-            });
+    const options = {
+        layers: [basemapLayer, labelsLayer],
+        minwidth: 200,
+        minZoom: 2,
+        maxZoom: 17,
+        maxBounds: bounds,
+        // noWrap: true,
+    };
 
-            // Define the bounds for the map
-             bounds = [
-                [-90, -180], // Southwest coordinates
-                [90, 180] // Northeast coordinates
-            ];
 
-             options = {
-                layers: [basemapLayer, labelsLayer],
-                // layers: [basemapLayer],
-                minwidth: 200,
-                minZoom: 2,
-                maxZoom: 17,
-                maxBounds: bounds
-            };
-
-        } else {
-            basemapLayer = L.tileLayer(basemapUrl, {
-                attribution: '<a href="https://openstreetmap.org">OpenStreetMap</a>',
-                noWrap: true,
-                tileSize: 256,
-                errorTileUrl: '',
-                errorTileTimeout: 5000,
-            });
-             bounds = [
-                [-90, -180], // Southwest coordinates
-                [90, 180], // Northeast coordinates
-            ];
-
-             options = {
-                layers: [basemapLayer],
-                minwidth: 200,
-                minZoom: 3.5,
-                maxZoom: 17,
-                maxBounds: bounds,
-            };
-        }
-
-        map = L.map('map', options);
-    }
-    var t = L.terminator();
-    t.addTo(map);
-    setInterval(function(){updateTerminator(t)}, 500);
-    function updateTerminator(t) {
-        t.setTime();
-    }
-    return map;
+    return L.map('map', options);
 }
 
 export function destroyMap() {

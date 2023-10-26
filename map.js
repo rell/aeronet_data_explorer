@@ -58,7 +58,15 @@ async function initializeMap() {
 
     // Set center and default zoom
     map.setView([0, 0], 1);
+
+    // Slightly improves tile loading
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 500);
+
+    initFields.addTermToMap()
 }
 
 // Call the initializeMap function
 initializeMap();
+
