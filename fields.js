@@ -28,6 +28,7 @@ export class FieldInitializer {
         this.terminator = L.terminator();
         this.wmsLayer = null
         this.init();
+        this.addMapControl();
     }
 
     init() {
@@ -110,61 +111,6 @@ export class FieldInitializer {
         const header = document.createElement("h2");
         header.textContent = "Data Filters";
         header.style.textAlign = 'center';
-
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            noWrap:true,
-
-        });
-
-
-        const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-            zIndex: 1000,
-            noWrap: true,
-            tileSize: 256,
-            errorTileUrl: '',
-            errorTileTimeout: 5000,
-        });
-
-        console.log(this.dateString)
-
-        this.wmsLayer = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
-            layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor"],
-            format: 'image/png',
-            crs: L.CRS.EPSG4326,
-            opacity: 0.5,
-            transparent: true,
-            attribution: "",
-            noWrap:true,
-        });
-
-        const cloudLayer = L.layerGroup([this.wmsLayer, labelsLayer]);
-        let boilerDate = new Date()
-        // this.updateTerminator(this.trueerminator,boilerDate.toISOString())
-        this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}` )
-
-        // wmsLayer({time:"2022-12-12"})
-        // var wmtsLayer = L.tileLayer('https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/{your_token}/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fpng', {
-        //     maxZoom: 9,
-        //     minZoom: 0,
-        //     continuousWorld: true,
-        //     attribution: '© <a href="https://www.lantmateriet.se/en/">Lantmäteriet</a> Topografisk Webbkarta Visning, CCB',
-        // })
-
-        // Create control
-        var baseMaps = {
-            "Cloud Layer" : cloudLayer,
-            "Default Open Street Map": osm,
-            "None" : labelsLayer,
-        };
-
-        L.control.layers(baseMaps).addTo(this.map);
-
-        this.map.on('baselayerchange', function(e) {
-
-        });
-
 
         // Insert the header before the form element
         fieldsContainer.insertBefore(header, fieldsContainer.firstChild);
@@ -346,7 +292,6 @@ export class FieldInitializer {
             this.setToggleValue(this.recentlySetInactive)
             updateTime(this.dateTime, this.daily);
             this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}`)
-            console.log(this.dateTime)
         });
 
         this.toggleInactive = document.getElementById('toggle-inactive');
@@ -462,13 +407,11 @@ export class FieldInitializer {
 
         if (daily)
         {
-            console.log(time)
             // Remove the old terminator layer from the map
             this.map.removeLayer(this.terminator);
         }
         else
         {
-            console.log(time)
             // Remove the old terminator layer from the map
             this.map.removeLayer(this.terminator);
 
@@ -492,5 +435,73 @@ export class FieldInitializer {
     addTermToMap()
     {
         this.terminator.addTo(this.map);
+        this.markerLayer.updateMarkers(latestOfSet(this.siteData), this.allSiteData, this.opticalDepth, this.api_args,);
+
+    }
+
+    addMapControl() {
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            noWrap:true,
+
+        });
+
+        const basemapLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            // attribution: '<a href="https://openstreetmap.org">OSM</a>',
+            // noWrap: true,
+            tileSize: 256,
+            errorTileUrl: '',
+            noWrap:true,
+            errorTileTimeout: 5000,
+
+        });
+
+        const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            zIndex: 1000,
+            noWrap: true,
+            tileSize: 256,
+            errorTileUrl: '',
+            errorTileTimeout: 5000,
+        });
+
+        this.wmsLayer = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
+            layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor"],
+            format: 'image/png',
+            crs: L.CRS.EPSG4326,
+            opacity: 0.5,
+            tileSize: 256,
+            transparent: true,
+            attribution: "",
+            noWrap:true,
+            errorTileTimeout: 5000,
+        });
+        const ersi = L.layerGroup([basemapLayer, labelsLayer]);
+
+        const cloudLayer = L.layerGroup([basemapLayer, this.wmsLayer, labelsLayer]);
+        let boilerDate = new Date()
+        // this.updateTerminator(this.trueerminator,boilerDate.toISOString())
+        this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}` )
+
+        // wmsLayer({time:"2022-12-12"})
+        // var wmtsLayer = L.tileLayer('https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/{your_token}/?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fpng', {
+        //     maxZoom: 9,
+        //     minZoom: 0,
+        //     continuousWorld: true,
+        //     attribution: '© <a href="https://www.lantmateriet.se/en/">Lantmäteriet</a> Topografisk Webbkarta Visning, CCB',
+        // })
+
+        var baseMaps = {
+            "Clouds" : cloudLayer,
+            "Default Open Street Map": osm,
+            "Esri World Imagery" : labelsLayer,
+        };
+
+        L.control.layers(baseMaps).addTo(this.map);
+
+        this.map.on('baselayerchange', function(e) {
+
+        });
+
     }
 }

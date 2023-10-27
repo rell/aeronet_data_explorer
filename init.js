@@ -6,6 +6,7 @@ export function initMap(basemapUrl = null) {
         // attribution: '<a href="https://openstreetmap.org">OSM</a>',
         // noWrap: true,
         tileSize: 256,
+        noWrap:true,
         errorTileUrl: '',
         errorTileTimeout: 5000,
 

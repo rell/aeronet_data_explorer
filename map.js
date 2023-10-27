@@ -54,17 +54,19 @@ async function initializeMap() {
 
     // Build fields
     initFields = new FieldInitializer(site_data, all_site_data, optical_depth, map, markerLayer, defaultDate, colorLegend);
+
+
     markerLayer.fieldsClass = initFields;
 
     // Set center and default zoom
     map.setView([0, 0], 1);
+    initFields.addTermToMap()
 
     // Slightly improves tile loading
     setTimeout(function() {
         map.invalidateSize();
     }, 500);
 
-    initFields.addTermToMap()
 }
 
 // Call the initializeMap function
