@@ -66,10 +66,10 @@ export class FieldInitializer {
         const dropdownSite = initDropdown('site-drop-down', this.siteFieldData, siteDisc, placeholder, true, 'site-fields', toolTipContent,);
 
 
-        const datatypeOpt = [{value: 10, label: 'NRT (+1/-1)'}, {value: 20, label: 'Daily'}];
+        const datatypeOpt = [{value: 10, label: 'Near Real Time'}, {value: 20, label: 'Daily'}];
         const dataTypeDisc = 'Select mode';
-        toolTipContent =  '<strong>Real-time:</strong> the points displayed on the legend are the most recent within a selected window.</p>\n' +
-            '<p><strong>Daily:</strong> the average value displayed for the date set within the window.'
+        toolTipContent =  '<strong>Near Real Time:</strong> the points displayed on the map are from the last one hour.</p>\n' +
+            '<p><strong>Daily:</strong> the average value displayed for the chosen date.'
         placeholder = 'NRT'
         const dropdownData = initDropdown('data-type-dropdown', datatypeOpt, dataTypeDisc, placeholder, false, 'avg-fields', toolTipContent);
 
@@ -466,19 +466,19 @@ export class FieldInitializer {
         });
 
         this.wmsLayer = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi", {
-            layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor"],
+            layers:["VIIRS_NOAA20_CorrectedReflectance_TrueColor","Coastlines"],
             format: 'image/png',
             crs: L.CRS.EPSG4326,
-            opacity: 0.5,
+            opacity: 1.0,
             tileSize: 256,
             transparent: true,
             attribution: "",
-            noWrap:true,
+            noWrap:false,
             errorTileTimeout: 5000,
         });
         const ersi = L.layerGroup([basemapLayer, labelsLayer]);
 
-        const cloudLayer = L.layerGroup([basemapLayer, this.wmsLayer, labelsLayer]);
+        const cloudLayer = L.layerGroup([ this.wmsLayer, labelsLayer]);
         let boilerDate = new Date()
         // this.updateTerminator(this.trueerminator,boilerDate.toISOString())
         this.updateTime(this.wmsLayer, `${this.dateTime[0][0]}-${this.dateTime[0][1]}-${this.dateTime[0][2]}` )
@@ -492,9 +492,9 @@ export class FieldInitializer {
         // })
 
         var baseMaps = {
-            "Clouds" : cloudLayer,
-            "Default Open Street Map": osm,
-            "Esri World Imagery" : labelsLayer,
+            "SNPP VIIRS True Color Image" : cloudLayer,
+            "Open Street Map": osm,
+            "Esri World Imagery" : ersi,
         };
 
         L.control.layers(baseMaps).addTo(this.map);

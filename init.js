@@ -2,22 +2,11 @@ let map = null;
 
 export function initMap(basemapUrl = null) {
     basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-    const basemapLayer = L.tileLayer(basemapUrl, {
-        // attribution: '<a href="https://openstreetmap.org">OSM</a>',
-        // noWrap: true,
-        tileSize: 256,
+    const basemapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         noWrap:true,
-        errorTileUrl: '',
-        errorTileTimeout: 5000,
 
-    });
-
-    const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        zIndex: 1000,
-        noWrap: true,
-        tileSize: 256,
-        errorTileUrl: '',
-        errorTileTimeout: 5000,
     });
 
     const bounds = [
@@ -26,9 +15,9 @@ export function initMap(basemapUrl = null) {
     ];
 
     const options = {
-        layers: [basemapLayer, labelsLayer],
+        layers: [basemapLayer],
         minwidth: 200,
-        minZoom: 2,
+        minZoom: 3.0,
         maxZoom: 17,
         maxBounds: bounds,
         // noWrap: true,
