@@ -478,7 +478,7 @@ export class MarkerManager {
       const height = 200
       // const width = Math.min(maxWidth, window.innerWidth);
       // const height = (width * 200) / 800;
-      const screenSizeFactor = window.innerWidth <= maxWidth ? .5 : 1;
+      const screenSizeFactor = window.innerWidth <= maxWidth ? 1 : 1;
 
       const adjustedWidth = width * screenSizeFactor;
       const adjustedHeight = height * screenSizeFactor;
