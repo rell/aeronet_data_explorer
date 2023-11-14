@@ -2,7 +2,7 @@
 
 // Latest data flow
 // const date = getDate().toISOString().split('T')[0].split('-');
-const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/cgi-bin/site_info_v3'
+const splitCsvAt = 'https://aeronet.gsfc.nasa.gov/new_web/site_info_v3'
 // const allSites = 'https://aeronet.gsfc.nasa.gov/aeronet_locations_v3.txt'
 // const api_args = `?year=2023&month=6&day=11&AOD15=1&AVG=10&if_no_html=1`
 
@@ -20,7 +20,7 @@ export async function getAllSites(year)
             header: true,
             skipEmptyLines: true,
         }
-
+        // console.log(response)
         const data = response.split(`,${year}`)[1] // CSV
         const objs = await Papa.parse(data, config) // Avg for building js objects was ~7 ms
         return objs.data
@@ -58,6 +58,7 @@ export async function getSitesData(args, dataType, date)
         if (dataType.toString() === '10') // all points
         {
             // If mode is ALL POINT = 10
+            // console.log(response)
             // Only keep points with an currentHr from current UTC times
             const data = response.split(splitCsvAt)[1]; // CSV
             const objs = await Papa.parse(data, config);
