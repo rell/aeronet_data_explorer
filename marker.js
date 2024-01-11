@@ -100,11 +100,20 @@ export class MarkerManager {
           {
             this.startDate[1] = parseInt(this.endDate[1])-1
           }
+          if (this.startDate[1] <= 0)
+          {
+            this.startDate[1] = 12 - this.startDate[1]
+          }
+          // // if(this.startDate[1] = )
+
+          // console.log(this.startDate, this.endDate)
+
           const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl)
+          console.log(avgUrl)
           // Build a chart from the full data
-          let  chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
+          let chartData = buildChartData(timedSiteData, activeDepth, this.endDate, this.startDate);
           chartData = fillChartData(chartData)
 
           // Create a chart control from the chart data

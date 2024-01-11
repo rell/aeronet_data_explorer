@@ -33,9 +33,11 @@ export async function getAllSites(year)
 
 export async function getSitesData(args, dataType, date)
 {
+    console.log(args, date, dataType);
+
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     try {
-        const response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
+        var response = await fetch(apiUrl.concat(args), {method:'GET', mode:'no-cors'})
             .then(response => response.text())
             .catch(error => console.log(error))
         const config = {
@@ -43,6 +45,7 @@ export async function getSitesData(args, dataType, date)
             newline: '\n',
             header: true,
             skipEmptyLines: true,
+
         }
         if(dataType.toString() === '20') // daily avg
         {
@@ -66,8 +69,10 @@ export async function getSitesData(args, dataType, date)
             return withinTime(objs.data, date);
         }
     } catch (error) {
+        console.log("HERE ", response)
+        throw new Error('Failed to get data from');
         console.error(error);
-        throw new Error('Failed to get data');
+
     }
 }
 
@@ -176,6 +181,10 @@ export function fillChartData(chartData)
             }
         });
     }
+
+    // removes redundant first entry of data.x and data.y which is always null
+    chartData.shift();
+
     return chartData;
 }
 
