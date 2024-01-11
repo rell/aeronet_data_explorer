@@ -33,7 +33,6 @@ export async function getAllSites(year)
 
 export async function getSitesData(args, dataType, date)
 {
-    console.log(args, date, dataType);
 
     const apiUrl = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
     try {
@@ -69,10 +68,8 @@ export async function getSitesData(args, dataType, date)
             return withinTime(objs.data, date);
         }
     } catch (error) {
-        console.log("HERE ", response)
-        throw new Error('Failed to get data from');
+        throw new Error('Failed to get from API, please check api headers.');
         console.error(error);
-
     }
 }
 
