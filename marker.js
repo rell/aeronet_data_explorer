@@ -99,7 +99,7 @@ export class MarkerManager {
           this.map.setView(latlng);
 
           // Removed to fix error relating to chart generation
-          //console.log(this.startDate);
+          console.log(this.startDate);
           // Get the URL for the average data for the current site and time period
           //if (parseInt(this.endDate[1]) - 1 !== this.startDate) {
           //  this.startDate[1] = parseInt(this.endDate[1]) - 1;
@@ -108,6 +108,8 @@ export class MarkerManager {
           //  this.startDate[1] = 12 - this.startDate[1];
           //}
           // // if(this.startDate[1] = )
+
+          // console.log(this.startDate, this.endDate)
 
           const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
@@ -272,9 +274,9 @@ export class MarkerManager {
           this.map.setView(latlng);
 
           // Get the URL for the average data for the current site and time period
-          if (parseInt(this.endDate[1]) - 1 !== this.startDate) {
-            this.startDate[1] = parseInt(this.endDate[1]) - 1;
-          }
+          //if (parseInt(this.endDate[1]) - 1 !== this.startDate) {
+          //  this.startDate[1] = parseInt(this.endDate[1]) - 1;
+          //}
           const avgUrl = await getAvgUrl(site, this.endDate, this.startDate);
           // Get the full data for the current site and time period
           const timedSiteData = await getFullData(avgUrl);
@@ -309,7 +311,7 @@ export class MarkerManager {
               <div id='testtype'><p> ${site} has been active within the past thirty days. <span style='font-weight:bold'>${this.dateString}</span> is when the most recent reading occured.</p>
               <p> Site: <a href='https://aeronet.gsfc.nasa.gov/new_web/photo_db_v3/${site}.html'>${site}</a>  (${element[site_lat]},${element[site_long]})</p>
               <div class="button-container">
-              <button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3${this.currentArg}&site=${site}' target="_blank">View Raw</a></button><button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/data_display_aod_v3?site=${site}&nachal=0&year=${this.startDate[0]}&month=${parseInt(this.startDate[1]) + 1}&day=${(parseInt(this.startDate[2]) - 1).toString().padStart(2, "0")}&aero_water=0&level=1&if_day=0&if_err=0&place_code=10&year_or_month=0' target="_blank">Download Data</a></button>
+              <button id="popupButton"> <a href='${await getAvgUrl(site, this.endDate, this.startDate)}' target="_blank">View Raw (30 day)</a></button><button id="popupButton"> <a href='https://aeronet.gsfc.nasa.gov/cgi-bin/data_display_aod_v3?site=${site}&nachal=0&year=${this.startDate[0]}&month=${parseInt(this.startDate[1]) + 1}&day=${(parseInt(this.startDate[2]) - 1).toString().padStart(2, "0")}&aero_water=0&level=1&if_day=0&if_err=0&place_code=10&year_or_month=0' target="_blank">Download Data</a></button>
               </div>              
               </div>`);
 
